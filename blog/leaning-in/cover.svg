@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#12121a"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </radialGradient>
+    <radialGradient id="glow-indigo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-cyan" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="edge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="edge-grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3"/>
+    </linearGradient>
+    <filter id="blur-sm">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+    <filter id="blur-lg">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <filter id="blur-md">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Ambient glow spots -->
+  <circle cx="350" cy="280" r="200" fill="url(#glow-indigo)" filter="url(#blur-lg)" opacity="0.3"/>
+  <circle cx="850" cy="350" r="180" fill="url(#glow-cyan)" filter="url(#blur-lg)" opacity="0.25"/>
+  <circle cx="600" cy="200" r="150" fill="url(#glow-indigo)" filter="url(#blur-lg)" opacity="0.15"/>
+
+  <!-- Network edges — outer cluster connections (faint) -->
+  <g stroke="url(#edge-grad2)" stroke-width="1" fill="none">
+    <!-- Left cluster internal -->
+    <line x1="180" y1="190" x2="280" y2="250"/>
+    <line x1="280" y1="250" x2="220" y2="340"/>
+    <line x1="220" y1="340" x2="180" y2="190"/>
+    <line x1="280" y1="250" x2="350" y2="180"/>
+    <line x1="180" y1="190" x2="120" y2="280"/>
+    <line x1="120" y1="280" x2="220" y2="340"/>
+    <line x1="350" y1="180" x2="280" y2="120"/>
+    <line x1="280" y1="120" x2="180" y2="190"/>
+
+    <!-- Right cluster internal -->
+    <line x1="920" y1="200" x2="1020" y2="260"/>
+    <line x1="1020" y1="260" x2="960" y2="350"/>
+    <line x1="960" y1="350" x2="920" y2="200"/>
+    <line x1="1020" y1="260" x2="1080" y2="190"/>
+    <line x1="960" y1="350" x2="1060" y2="390"/>
+    <line x1="1060" y1="390" x2="1080" y2="190"/>
+
+    <!-- Bottom cluster -->
+    <line x1="400" y1="480" x2="500" y2="520"/>
+    <line x1="500" y1="520" x2="550" y2="450"/>
+    <line x1="550" y1="450" x2="400" y2="480"/>
+    <line x1="400" y1="480" x2="340" y2="540"/>
+    <line x1="500" y1="520" x2="600" y2="560"/>
+
+    <!-- Top scatter -->
+    <line x1="500" y1="80" x2="600" y2="120"/>
+    <line x1="600" y1="120" x2="700" y2="90"/>
+    <line x1="700" y1="90" x2="750" y2="150"/>
+  </g>
+
+  <!-- Network edges — core connections (brighter) -->
+  <g stroke="url(#edge-grad)" stroke-width="1.5" fill="none">
+    <!-- Central hub connections -->
+    <line x1="500" y1="280" x2="600" y2="310"/>
+    <line x1="600" y1="310" x2="700" y2="270"/>
+    <line x1="700" y1="270" x2="650" y2="360"/>
+    <line x1="650" y1="360" x2="550" y2="380"/>
+    <line x1="550" y1="380" x2="500" y2="280"/>
+    <line x1="600" y1="310" x2="650" y2="360"/>
+    <line x1="500" y1="280" x2="700" y2="270"/>
+    <line x1="550" y1="380" x2="700" y2="270"/>
+
+    <!-- Hub to outer clusters -->
+    <line x1="500" y1="280" x2="350" y2="180" stroke-dasharray="4 6"/>
+    <line x1="500" y1="280" x2="280" y2="250" stroke-dasharray="4 6"/>
+    <line x1="700" y1="270" x2="920" y2="200" stroke-dasharray="4 6"/>
+    <line x1="650" y1="360" x2="960" y2="350" stroke-dasharray="4 6"/>
+    <line x1="550" y1="380" x2="400" y2="480" stroke-dasharray="4 6"/>
+    <line x1="600" y1="310" x2="550" y2="450" stroke-dasharray="4 6"/>
+    <line x1="600" y1="310" x2="600" y2="120" stroke-dasharray="4 6"/>
+    <line x1="700" y1="270" x2="750" y2="150" stroke-dasharray="4 6"/>
+  </g>
+
+  <!-- Outer cluster nodes (small, dim) -->
+  <g>
+    <!-- Left cluster -->
+    <circle cx="180" cy="190" r="4" fill="#6366f1" opacity="0.5"/>
+    <circle cx="280" cy="250" r="5" fill="#6366f1" opacity="0.6"/>
+    <circle cx="220" cy="340" r="3.5" fill="#6366f1" opacity="0.4"/>
+    <circle cx="350" cy="180" r="4" fill="#06b6d4" opacity="0.5"/>
+    <circle cx="120" cy="280" r="3" fill="#6366f1" opacity="0.35"/>
+    <circle cx="280" cy="120" r="3" fill="#6366f1" opacity="0.3"/>
+
+    <!-- Right cluster -->
+    <circle cx="920" cy="200" r="4.5" fill="#06b6d4" opacity="0.5"/>
+    <circle cx="1020" cy="260" r="4" fill="#06b6d4" opacity="0.45"/>
+    <circle cx="960" cy="350" r="5" fill="#6366f1" opacity="0.5"/>
+    <circle cx="1080" cy="190" r="3" fill="#06b6d4" opacity="0.4"/>
+    <circle cx="1060" cy="390" r="3.5" fill="#6366f1" opacity="0.35"/>
+
+    <!-- Bottom cluster -->
+    <circle cx="400" cy="480" r="4" fill="#6366f1" opacity="0.45"/>
+    <circle cx="500" cy="520" r="3.5" fill="#06b6d4" opacity="0.4"/>
+    <circle cx="550" cy="450" r="4.5" fill="#6366f1" opacity="0.5"/>
+    <circle cx="340" cy="540" r="3" fill="#6366f1" opacity="0.3"/>
+    <circle cx="600" cy="560" r="3" fill="#06b6d4" opacity="0.3"/>
+
+    <!-- Top scatter -->
+    <circle cx="500" cy="80" r="3" fill="#06b6d4" opacity="0.35"/>
+    <circle cx="600" cy="120" r="4" fill="#6366f1" opacity="0.45"/>
+    <circle cx="700" cy="90" r="3.5" fill="#06b6d4" opacity="0.4"/>
+    <circle cx="750" cy="150" r="3" fill="#6366f1" opacity="0.35"/>
+  </g>
+
+  <!-- Central hub nodes (larger, glowing) -->
+  <g>
+    <!-- Glows behind hub nodes -->
+    <circle cx="500" cy="280" r="20" fill="#6366f1" opacity="0.12" filter="url(#blur-sm)"/>
+    <circle cx="600" cy="310" r="28" fill="#6366f1" opacity="0.15" filter="url(#blur-md)"/>
+    <circle cx="700" cy="270" r="18" fill="#06b6d4" opacity="0.12" filter="url(#blur-sm)"/>
+    <circle cx="650" cy="360" r="16" fill="#06b6d4" opacity="0.1" filter="url(#blur-sm)"/>
+    <circle cx="550" cy="380" r="14" fill="#6366f1" opacity="0.1" filter="url(#blur-sm)"/>
+
+    <!-- Hub nodes -->
+    <circle cx="500" cy="280" r="7" fill="#6366f1" opacity="0.9"/>
+    <circle cx="600" cy="310" r="10" fill="#7c7ff4" opacity="1"/>
+    <circle cx="700" cy="270" r="6.5" fill="#06b6d4" opacity="0.85"/>
+    <circle cx="650" cy="360" r="5.5" fill="#06b6d4" opacity="0.8"/>
+    <circle cx="550" cy="380" r="5" fill="#6366f1" opacity="0.8"/>
+  </g>
+
+  <!-- Floating micro-particles -->
+  <g fill="#6366f1" opacity="0.2">
+    <circle cx="150" cy="420" r="1.5"/>
+    <circle cx="80" cy="150" r="1"/>
+    <circle cx="450" cy="150" r="1.5"/>
+    <circle cx="800" cy="450" r="1"/>
+    <circle cx="1100" cy="500" r="1.5"/>
+    <circle cx="1050" cy="120" r="1"/>
+    <circle cx="300" cy="560" r="1"/>
+    <circle cx="850" cy="550" r="1.5"/>
+    <circle cx="950" cy="480" r="1"/>
+    <circle cx="200" cy="500" r="1"/>
+    <circle cx="750" cy="500" r="1.5"/>
+    <circle cx="650" cy="180" r="1"/>
+    <circle cx="420" cy="380" r="1.5"/>
+    <circle cx="820" cy="130" r="1"/>
+  </g>
+  <g fill="#06b6d4" opacity="0.15">
+    <circle cx="900" cy="520" r="1.5"/>
+    <circle cx="100" cy="380" r="1"/>
+    <circle cx="350" cy="420" r="1.5"/>
+    <circle cx="1000" cy="450" r="1"/>
+    <circle cx="680" cy="530" r="1"/>
+    <circle cx="530" cy="200" r="1.5"/>
+    <circle cx="770" cy="380" r="1"/>
+  </g>
+
+  <!-- Subtle vignette overlay -->
+  <rect width="1200" height="630" fill="url(#bg)" opacity="0.3"/>
+</svg>
