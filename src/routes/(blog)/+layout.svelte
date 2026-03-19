@@ -25,7 +25,7 @@
   >Community</a>
 </nav>
 
-<main id="main-content" tabindex="-1" class="pt-14">
+<main id="main-content" tabindex="-1" class="relative z-10 pt-14">
   {@render children()}
 </main>
 
