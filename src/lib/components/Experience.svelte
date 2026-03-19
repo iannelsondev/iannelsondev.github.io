@@ -31,7 +31,13 @@
                 >{entry.avatar}</div>
                 <div>
                   <div class="font-semibold text-lg md:text-xl text-[#f1f5f9]">{entry.role}</div>
-                  <div class="font-mono text-sm md:text-base tracking-wide text-[#6366f1]">{entry.company}</div>
+                  <div class="font-mono text-sm md:text-base tracking-wide text-[#6366f1]">
+                    {#if entry.companyUrl}
+                      @ <a href={entry.companyUrl} target="_blank" rel="noopener noreferrer" class="hover:text-[#06b6d4] transition-colors duration-150 underline decoration-[rgba(99,102,241,0.3)] underline-offset-2 hover:decoration-[#06b6d4]">{entry.company}</a>
+                    {:else}
+                      @ {entry.company}
+                    {/if}
+                  </div>
                 </div>
               </div>
               <div class="font-mono text-[0.65rem] md:text-[0.75rem] tracking-[0.1em] text-[#94a3b8] whitespace-nowrap pt-2">{entry.dates}</div>

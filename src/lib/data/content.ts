@@ -2,6 +2,7 @@ export interface ExperienceEntry {
   avatar: string;
   role: string;
   company: string;
+  companyUrl?: string;
   companyDesc: string;
   dates: string;
   location: string;
@@ -69,6 +70,7 @@ export const experience: ExperienceEntry[] = [
     avatar: 'C',
     role: 'CTO, R&D',
     company: 'Clarity Innovations',
+    companyUrl: 'https://clarityinnovates.com',
     companyDesc: 'Intelligence Community services and technology company delivering mission-critical solutions across the national security enterprise.',
     dates: 'JUL 2023 – PRESENT',
     location: '6940 Columbia Gateway Dr, Columbia, MD',
@@ -83,6 +85,7 @@ export const experience: ExperienceEntry[] = [
     avatar: 'T',
     role: 'CEO',
     company: 'Talon Black',
+    companyUrl: 'https://talonblack.com',
     companyDesc: 'AI/ML-assisted risk intelligence platform. Autonomous analysis, multi-agent swarm architectures, and derived value generation for enterprise clients.',
     dates: 'JUN 2023 – PRESENT',
     location: 'Severna Park, MD (Remote)',
@@ -97,6 +100,7 @@ export const experience: ExperienceEntry[] = [
     avatar: 'Co',
     role: 'Insurance Operations Strategist',
     company: 'Coalition, Inc.',
+    companyUrl: 'https://www.coalitioninc.com',
     companyDesc: 'Active cyber insurance and security company combining insurance with cybersecurity technology to manage and mitigate digital risk.',
     dates: 'DEC 2021 – JUL 2023',
     location: '1160 Battery St, San Francisco, CA',
@@ -109,6 +113,7 @@ export const experience: ExperienceEntry[] = [
   {
     avatar: 'Co',
     role: 'Senior Principal Engineer',
+    companyUrl: 'https://www.coalitioninc.com',
     company: 'Coalition, Inc.',
     companyDesc: 'Active cyber insurance and security company combining insurance with cybersecurity technology to manage and mitigate digital risk.',
     dates: 'MAR 2018 – DEC 2021',
@@ -123,6 +128,7 @@ export const experience: ExperienceEntry[] = [
   {
     avatar: 'CI',
     role: 'Board of Advisors',
+    companyUrl: 'https://clarityinnovates.com',
     company: 'Clarity Innovations',
     companyDesc: 'Technology services company focused on IC and defense programs, specializing in agile software development and systems integration.',
     dates: 'JUN 2015 – AUG 2020',
@@ -148,6 +154,7 @@ export const experience: ExperienceEntry[] = [
   },
   {
     avatar: 'I',
+    companyUrl: 'https://www.ironnet.com',
     role: 'Senior Software Architect',
     company: 'IronNet Cybersecurity',
     companyDesc: 'Network detection and response company founded by former NSA Director Gen. Keith Alexander. Real-time behavioral analytics on network traffic.',
@@ -162,6 +169,7 @@ export const experience: ExperienceEntry[] = [
   },
   {
     avatar: 'N',
+    companyUrl: 'https://www.nsa.gov',
     role: 'Principal Engineer / Technical Director',
     company: 'NSA',
     companyDesc: 'National Security Agency — signals intelligence and information assurance for the United States Government.',
@@ -176,6 +184,7 @@ export const experience: ExperienceEntry[] = [
   },
   {
     avatar: 'A',
+    companyUrl: 'https://www.akimeka.com',
     role: 'Senior Technical Consultant',
     company: 'Akimeka',
     companyDesc: 'Defense contractor providing technology services and solutions to DoD and intelligence community clients in the Pacific theater.',
@@ -202,6 +211,7 @@ export const experience: ExperienceEntry[] = [
   },
   {
     avatar: 'US',
+    companyUrl: 'https://www.army.mil',
     role: 'Signals Intelligence Analyst',
     company: 'U.S. Army / NSA Hawaii',
     companyDesc: 'NSA/CSS Hawaii — signals intelligence collection and analysis supporting national and theater intelligence requirements in the Pacific.',
