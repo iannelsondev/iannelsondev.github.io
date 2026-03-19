@@ -13,7 +13,7 @@
     {#each skillCategories as category, i}
       <ScrollReveal delay={i % 2 === 0 ? 0 : 100}>
         <div
-          class="p-4 md:p-6 rounded-xl backdrop-blur-md transition-all duration-250 hover:shadow-[0_8px_40px_rgba(99,102,241,0.1)] h-full"
+          class="p-4 md:p-6 rounded-xl transition-[border-color,box-shadow,transform] duration-200 hover:shadow-[0_8px_40px_rgba(99,102,241,0.1)] h-full"
           style="background: var(--card-bg); border: 1px solid var(--card-border);"
           role="region"
           aria-label="{category.label} skills"

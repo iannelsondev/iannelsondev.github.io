@@ -13,8 +13,8 @@
     {#each education as entry, i}
       <ScrollReveal delay={i * 100}>
         <div
-          class="p-4 md:px-6 md:py-5 rounded-xl backdrop-blur-md flex items-center justify-between gap-6 flex-wrap
-            transition-all duration-250 hover:shadow-[0_4px_20px_rgba(99,102,241,0.08)]
+          class="p-4 md:px-6 md:py-5 rounded-xl flex items-center justify-between gap-6 flex-wrap
+            transition-[border-color,box-shadow,transform] duration-200 hover:shadow-[0_4px_20px_rgba(99,102,241,0.08)]
             max-md:flex-col max-md:items-start"
           style="background: var(--card-bg); border: 1px solid var(--card-border);"
           role="article"

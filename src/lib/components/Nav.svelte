@@ -78,7 +78,7 @@
       <li>
         <a
           href={link.href}
-          class="flex items-center font-mono tracking-wider uppercase transition-all duration-200 group nav-link
+          class="flex items-center font-mono tracking-wider uppercase transition-[color,background-color,border-color] duration-200 group nav-link
             border-l-2 {activeSection === link.href.replace('#', '') ? 'border-[#6366f1] text-[#f1f5f9] bg-[rgba(99,102,241,0.08)]' : 'border-transparent text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[rgba(99,102,241,0.05)]'}"
           onclick={(e) => handleNavClick(e, link.href)}
           onkeydown={(e) => handleNavClick(e, link.href)}

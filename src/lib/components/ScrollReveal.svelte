@@ -29,7 +29,7 @@
 
 <div
   bind:this={el}
-  class="transition-all duration-700 ease-out"
+  class="transition-[opacity,transform] duration-700 ease-out"
   class:opacity-0={mounted && !visible}
   class:translate-y-8={mounted && !visible}
   class:opacity-100={!mounted || visible}

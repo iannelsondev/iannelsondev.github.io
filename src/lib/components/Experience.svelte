@@ -20,7 +20,7 @@
     {#each experience as entry, i}
       <ScrollReveal delay={Math.min(i, 2) * 80}>
         <article
-          class="exp-card p-4 md:p-6 rounded-xl transition-all duration-200 md:ml-10 relative"
+          class="exp-card p-4 md:p-6 rounded-xl transition-[border-color,box-shadow,transform] duration-200 md:ml-10 relative"
           onmouseenter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-hover)'; }}
           onmouseleave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-border)'; }}
         >

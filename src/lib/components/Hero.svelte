@@ -38,7 +38,7 @@
       target="_blank"
       rel="noopener noreferrer"
       class="font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[#f1f5f9] px-6 py-3 rounded-md
-        transition-all duration-200 hover:-translate-y-0.5"
+        transition-[transform,border-color] duration-200 hover:-translate-y-0.5"
       style="border: 1px solid transparent; background: linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box;"
       onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
       onfocus={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
@@ -50,7 +50,7 @@
       target="_blank"
       rel="noopener noreferrer"
       class="font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[#f1f5f9] px-6 py-3 rounded-md
-        transition-all duration-200 hover:-translate-y-0.5"
+        transition-[transform,border-color] duration-200 hover:-translate-y-0.5"
       style="border: 1px solid transparent; background: linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box;"
       onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
       onfocus={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
@@ -60,7 +60,7 @@
     <a
       href="mailto:iannelsondev@proton.me"
       class="font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[#f1f5f9] px-6 py-3 rounded-md
-        transition-all duration-200 hover:-translate-y-0.5"
+        transition-[transform,border-color] duration-200 hover:-translate-y-0.5"
       style="border: 1px solid transparent; background: linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box;"
       onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
       onfocus={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}

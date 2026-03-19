@@ -24,7 +24,7 @@
       <div class="flex flex-col gap-3">
         {#each metaCards as card}
           <div
-            class="px-5 py-4 rounded-r-lg backdrop-blur-md transition-all duration-200 hover:shadow-[0_4px_20px_rgba(99,102,241,0.1)]"
+            class="px-5 py-4 rounded-r-lg transition-[border-color,box-shadow,transform] duration-200 hover:shadow-[0_4px_20px_rgba(99,102,241,0.08)]"
             style="background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid #6366f1;"
           >
             <div class="font-mono text-[0.55rem] md:text-[0.65rem] tracking-[0.22em] uppercase text-[#6366f1] mb-1">{card.label}</div>

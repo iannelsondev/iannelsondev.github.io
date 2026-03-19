@@ -13,7 +13,7 @@
     {#each projects as project, i}
       <ScrollReveal delay={i % 3 === 0 ? 0 : i % 3 === 1 ? 100 : 200}>
         <article
-          class="p-4 md:p-6 rounded-xl backdrop-blur-md flex flex-col gap-3 transition-all duration-250
+          class="p-4 md:p-6 rounded-xl flex flex-col gap-3 transition-[border-color,box-shadow,transform] duration-200
             hover:-translate-y-1 hover:shadow-[0_12px_48px_rgba(99,102,241,0.12)] h-full"
           style="background: var(--card-bg); border: 1px solid var(--card-border);"
           onmouseenter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-hover)'; }}

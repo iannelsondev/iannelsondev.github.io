@@ -10,7 +10,7 @@
 
   <ScrollReveal>
     <div
-      class="p-4 md:p-6 lg:p-8 rounded-xl backdrop-blur-md"
+      class="p-4 md:p-6 lg:p-8 rounded-xl"
       style="background: var(--card-bg); border: 1px solid var(--card-border);"
     >
       <div class="flex items-center gap-3 mb-4">
