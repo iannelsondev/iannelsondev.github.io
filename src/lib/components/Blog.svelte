@@ -39,14 +39,14 @@
               onmouseleave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-border)'; }}
             >
               {#if post.coverImage}
-                <div class="relative overflow-hidden rounded-t-xl">
+                <div class="relative overflow-hidden rounded-t-xl tile-cover">
                   <img
                     src={post.coverImage}
                     alt=""
                     class="w-full aspect-video object-cover"
                     loading="lazy"
                   />
-                  <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse at 40% 50%, rgba(99,102,241,0.08) 0%, transparent 70%);"></div>
+                  <div class="absolute inset-0 pointer-events-none tile-glow"></div>
                 </div>
               {:else}
                 <div class="w-full aspect-video rounded-t-xl" style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1));"></div>
@@ -93,3 +93,23 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .tile-glow {
+    background: radial-gradient(ellipse at 40% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+    transition: opacity 0.3s ease;
+  }
+
+  :global(.group:hover) .tile-glow {
+    opacity: 1;
+    background: radial-gradient(ellipse at 40% 50%, rgba(99, 102, 241, 0.18) 0%, transparent 65%);
+  }
+
+  .tile-cover {
+    box-shadow: inset 0 -1px 0 0 rgba(99, 102, 241, 0.1);
+  }
+
+  :global(.group:hover) .tile-cover {
+    box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.08);
+  }
+</style>

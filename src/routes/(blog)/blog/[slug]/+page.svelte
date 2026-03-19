@@ -136,13 +136,13 @@
     <!-- Header -->
     <header class="mb-10">
       {#if post.coverImage}
-        <div class="relative overflow-hidden rounded-xl mb-8 border border-[rgba(99,102,241,0.15)]">
+        <div class="banner-cover relative overflow-hidden rounded-xl mb-8">
           <img
             src={post.coverImage}
             alt=""
             class="w-full aspect-video object-cover"
           />
-          <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse at 35% 45%, rgba(99,102,241,0.07) 0%, transparent 65%);"></div>
+          <div class="absolute inset-0 pointer-events-none banner-glow"></div>
         </div>
       {/if}
 
@@ -384,5 +384,15 @@
     padding: 0.5rem;
     margin: -0.5rem;
     transition: background 0.3s ease;
+  }
+
+  /* Banner cover glow */
+  .banner-cover {
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.06);
+  }
+
+  .banner-glow {
+    background: radial-gradient(ellipse at 35% 45%, rgba(99, 102, 241, 0.1) 0%, transparent 60%);
   }
 </style>
