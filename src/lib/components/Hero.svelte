@@ -389,7 +389,7 @@
   });
 </script>
 
-<section id="home" class="relative h-full w-full overflow-hidden" aria-label="Introduction">
+<section class="relative h-full w-full overflow-hidden" aria-label="Introduction">
   <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
     <div bind:this={glassEl} class="hero-glass relative w-full max-w-4xl rounded-2xl overflow-hidden">
 
