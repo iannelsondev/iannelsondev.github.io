@@ -441,25 +441,71 @@
           let lastSolidCount = 0;
           let lastDashedCount = 0;
 
-          // Traversal animation: particles flowing along edges from seed
+          // --- BFS traversal animation system ---
+          interface TraversalEdge {
+            from: Node;
+            to: Node;
+            hop: number; // BFS depth
+          }
           interface TraversalParticle {
             mesh: THREE.Mesh;
             mat: THREE.MeshBasicMaterial;
-            fromPos: THREE.Vector3;
-            toPos: THREE.Vector3;
+            from: Node;
+            to: Node;
             progress: number;
             speed: number;
           }
           const traversalParticles: TraversalParticle[] = [];
           let traversalActive = false;
-          let traversalSeedCommunity = 0;
-          let traversalSpawnTimer = 0;
+          let traversalEdges: TraversalEdge[] = []; // BFS-ordered edges
+          let traversalVisited: Set<Node> = new Set();
+          let traversalSeedNode: Node | null = null;
+          let traversalWaveTimer = 0;
+          let traversalCurrentWave = 0;
+          let traversalMaxWave = 0;
           const particleGeo = new THREE.SphereGeometry(1, 8, 8);
           const traversalGroup = new THREE.Group();
           scene.add(traversalGroup);
 
-          // Dim non-traversal nodes
-          let traversalDimOthers = false;
+          function buildAdjacency(): Map<Node, Node[]> {
+            const adj = new Map<Node, Node[]>();
+            for (const n of nodes) adj.set(n, []);
+            for (let i = 0; i < nodes.length; i++) {
+              const pa = nodes[i].mesh.position;
+              for (let j = i + 1; j < nodes.length; j++) {
+                const pb = nodes[j].mesh.position;
+                const dx = pa.x - pb.x, dy = pa.y - pb.y, dz = pa.z - pb.z;
+                if (Math.sqrt(dx*dx + dy*dy + dz*dz) < EDGE_DIST) {
+                  adj.get(nodes[i])!.push(nodes[j]);
+                  adj.get(nodes[j])!.push(nodes[i]);
+                }
+              }
+            }
+            return adj;
+          }
+
+          function runBFS(seed: Node, maxHops: number): TraversalEdge[] {
+            const adj = buildAdjacency();
+            const visited = new Set<Node>([seed]);
+            const queue: { node: Node; hop: number }[] = [{ node: seed, hop: 0 }];
+            const edges: TraversalEdge[] = [];
+
+            while (queue.length > 0) {
+              const { node, hop } = queue.shift()!;
+              if (hop >= maxHops) continue;
+              const neighbors = adj.get(node) || [];
+              for (const nb of neighbors) {
+                if (!visited.has(nb)) {
+                  visited.add(nb);
+                  edges.push({ from: node, to: nb, hop: hop + 1 });
+                  queue.push({ node: nb, hop: hop + 1 });
+                }
+              }
+            }
+
+            traversalVisited = visited;
+            return edges;
+          }
 
           graphCtrl = {
             focusCommunity(index: number) {
@@ -510,14 +556,33 @@
               spotlightNodeRef = null;
             },
             startTraversal(seedCommunity: number) {
+              // Find largest node in seed community as the BFS root
+              let best: Node | null = null;
+              for (const n of nodes) {
+                if (n.community === seedCommunity) {
+                  if (!best || n.baseRadius > best.baseRadius) best = n;
+                }
+              }
+              if (!best) return;
+              traversalSeedNode = best;
+              traversalEdges = runBFS(best, 4); // 4 hops deep
+              traversalMaxWave = Math.max(0, ...traversalEdges.map(e => e.hop));
+              traversalCurrentWave = 0;
+              traversalWaveTimer = 0;
               traversalActive = true;
-              traversalSeedCommunity = seedCommunity;
-              traversalDimOthers = true;
             },
             clearTraversal() {
               traversalActive = false;
-              traversalDimOthers = false;
-              // Clean up particles
+              // Restore original node colors
+              for (const n of nodes) {
+                const zone = zones[n.community];
+                n.mat.color.setHex(zone.color);
+                n.glowMat.color.setHex(zone.color);
+              }
+              traversalSeedNode = null;
+              traversalEdges = [];
+              traversalVisited.clear();
+              traversalCurrentWave = 0;
               for (const p of traversalParticles) {
                 traversalGroup.remove(p.mesh);
                 p.mat.dispose();
@@ -544,7 +609,15 @@
               targetNodeScale = 1.0;
               spotlightNodeRef = null;
               traversalActive = false;
-              traversalDimOthers = false;
+              for (const n of nodes) {
+                const zone = zones[n.community];
+                n.mat.color.setHex(zone.color);
+                n.glowMat.color.setHex(zone.color);
+              }
+              traversalSeedNode = null;
+              traversalEdges = [];
+              traversalVisited.clear();
+              traversalCurrentWave = 0;
               for (const p of traversalParticles) {
                 traversalGroup.remove(p.mesh);
                 p.mat.dispose();
@@ -712,52 +785,63 @@
               }
             }
 
-            // Traversal particle system
-            if (traversalActive) {
-              traversalSpawnTimer += 0.016;
-              // Spawn particles along edges from seed community
-              if (traversalSpawnTimer > 0.12) {
-                traversalSpawnTimer = 0;
-                // Find a random edge pair involving the seed community
-                const seedNodes = nodes.filter(n => n.community === traversalSeedCommunity);
-                if (seedNodes.length > 0) {
-                  const from = seedNodes[Math.floor(Math.random() * seedNodes.length)];
-                  // Find a neighbor
-                  let to: Node | null = null;
-                  for (const n of nodes) {
-                    if (n === from) continue;
-                    const dx = from.mesh.position.x - n.mesh.position.x;
-                    const dy = from.mesh.position.y - n.mesh.position.y;
-                    const dz = from.mesh.position.z - n.mesh.position.z;
-                    if (Math.sqrt(dx*dx + dy*dy + dz*dz) < EDGE_DIST) {
-                      to = n;
-                      break;
-                    }
+            // BFS traversal particle system
+            if (traversalActive && traversalEdges.length > 0) {
+              traversalWaveTimer += 0.016;
+
+              // Advance wave every 1.5 seconds, loop when done
+              if (traversalWaveTimer > 1.5) {
+                traversalWaveTimer = 0;
+                traversalCurrentWave++;
+                if (traversalCurrentWave > traversalMaxWave + 2) {
+                  // Reset and re-run BFS for a continuous loop
+                  traversalCurrentWave = 0;
+                  // Clean up existing particles
+                  for (const p of traversalParticles) {
+                    traversalGroup.remove(p.mesh);
+                    p.mat.dispose();
                   }
-                  if (to && traversalParticles.length < 30) {
-                    const pMat = new THREE.MeshBasicMaterial({
-                      color: 0x22d3ee,
-                      transparent: true,
-                      opacity: 1.0,
-                      blending: THREE.AdditiveBlending,
-                      depthWrite: false,
-                    });
-                    const pMesh = new THREE.Mesh(particleGeo, pMat);
-                    pMesh.scale.set(0.06, 0.06, 0.06);
-                    pMesh.position.copy(from.mesh.position);
-                    traversalGroup.add(pMesh);
-                    traversalParticles.push({
-                      mesh: pMesh,
-                      mat: pMat,
-                      fromPos: from.mesh.position.clone(),
-                      toPos: to.mesh.position.clone(),
-                      progress: 0,
-                      speed: 0.015 + Math.random() * 0.01,
-                    });
+                  traversalParticles.length = 0;
+                  // Re-run BFS (edges may have shifted slightly)
+                  if (traversalSeedNode) {
+                    traversalEdges = runBFS(traversalSeedNode, 4);
+                    traversalMaxWave = Math.max(0, ...traversalEdges.map(e => e.hop));
                   }
                 }
               }
-              // Animate particles
+
+              // Spawn particles for edges in the current wave
+              for (const edge of traversalEdges) {
+                if (edge.hop !== traversalCurrentWave) continue;
+                // Only spawn once per wave tick (check if already spawned)
+                const alreadySpawned = traversalParticles.some(
+                  p => p.from === edge.from && p.to === edge.to && p.progress < 0.9
+                );
+                if (alreadySpawned) continue;
+                if (traversalParticles.length >= 50) continue;
+
+                const pMat = new THREE.MeshBasicMaterial({
+                  color: 0x22d3ee,
+                  transparent: true,
+                  opacity: 1.0,
+                  blending: THREE.AdditiveBlending,
+                  depthWrite: false,
+                });
+                const pMesh = new THREE.Mesh(particleGeo, pMat);
+                pMesh.scale.set(0.07, 0.07, 0.07);
+                pMesh.position.copy(edge.from.mesh.position);
+                traversalGroup.add(pMesh);
+                traversalParticles.push({
+                  mesh: pMesh,
+                  mat: pMat,
+                  from: edge.from,
+                  to: edge.to,
+                  progress: 0,
+                  speed: 0.02 + Math.random() * 0.005,
+                });
+              }
+
+              // Animate particles — follow live node positions
               for (let i = traversalParticles.length - 1; i >= 0; i--) {
                 const p = traversalParticles[i];
                 p.progress += p.speed;
@@ -767,20 +851,34 @@
                   traversalParticles.splice(i, 1);
                   continue;
                 }
-                p.mesh.position.lerpVectors(p.fromPos, p.toPos, p.progress);
-                p.mat.opacity = p.progress < 0.2 ? p.progress / 0.2 : p.progress > 0.8 ? (1 - p.progress) / 0.2 : 1.0;
-                // Pulse glow size
-                const glow = 0.06 + Math.sin(p.progress * Math.PI) * 0.04;
+                // Lerp between current live positions of from/to nodes
+                p.mesh.position.lerpVectors(
+                  p.from.mesh.position,
+                  p.to.mesh.position,
+                  p.progress
+                );
+                p.mat.opacity = p.progress < 0.15 ? p.progress / 0.15 : p.progress > 0.85 ? (1 - p.progress) / 0.15 : 1.0;
+                const glow = 0.07 + Math.sin(p.progress * Math.PI) * 0.05;
                 p.mesh.scale.set(glow, glow, glow);
               }
 
-              // Dim non-seed nodes during traversal
-              if (traversalDimOthers) {
-                for (const n of nodes) {
-                  if (n.community !== traversalSeedCommunity) {
-                    n.mat.opacity *= 0.92;
-                    n.glowMat.opacity *= 0.92;
+              // Visual: visited nodes glow cyan, unvisited dim
+              for (const n of nodes) {
+                if (traversalVisited.has(n)) {
+                  // Seed node pulses brighter
+                  if (n === traversalSeedNode) {
+                    n.glowMat.color.setHex(0x22d3ee);
+                    n.glowMat.opacity = 0.9 + Math.sin(now * 0.005) * 0.1;
+                    n.mat.color.setHex(0x22d3ee);
+                  } else {
+                    n.glowMat.color.setHex(0x22d3ee);
+                    n.glowMat.opacity = Math.max(n.glowMat.opacity, 0.4);
+                    n.mat.color.setHex(0x67e8f9); // lighter cyan for reached nodes
                   }
+                } else {
+                  // Dim unvisited nodes
+                  n.mat.opacity *= 0.93;
+                  n.glowMat.opacity *= 0.93;
                 }
               }
             }
@@ -798,6 +896,7 @@
             const baseCamY = camTargetY + (tourActive ? 0 : targetCY);
             camera.position.x += (baseCamX - camera.position.x) * 0.03;
             camera.position.y += (baseCamY - camera.position.y) * 0.03;
+            camera.lookAt(0, 0, 0);
             renderer.render(scene, camera);
           });
 
@@ -853,8 +952,8 @@
   <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
     <div bind:this={glassEl} class="hero-glass relative w-full rounded-2xl overflow-hidden {tourActive ? 'hero-glass-expanded' : 'hero-glass-default'}">
 
-      <!-- Dark opaque background layer -->
-      <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.92); z-index: 0;"></div>
+      <!-- Dark opaque background layer — fades when tour is active to reveal graph -->
+      <div class="absolute inset-0 rounded-2xl hero-bg-layer {tourActive ? 'hero-bg-tour' : 'hero-bg-default'}" style="z-index: 0;"></div>
 
       <!--
         WCAG 1.1.1 — The canvas is purely decorative (animated network graph).
@@ -1367,13 +1466,26 @@
     transition: max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  .hero-bg-layer {
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(8, 8, 14, 1);
+  }
+
+  .hero-bg-default {
+    opacity: 0.92;
+  }
+
+  .hero-bg-tour {
+    opacity: 0.25;
+  }
+
   .hero-glass-default {
     max-width: 56rem; /* max-w-4xl */
   }
 
   .hero-glass-expanded {
-    max-width: calc(100vw - 2rem);
-    max-height: calc(100vh - 2rem);
+    max-width: calc(100% - 1.5rem);
+    min-height: min(85vh, calc(100% - 1.5rem));
   }
 
   .hero-text-glass {
@@ -1492,7 +1604,7 @@
   /* --- Tour tooltip (VIPR-style) --- */
   .tour-tooltip {
     position: absolute;
-    width: 22rem;
+    width: clamp(18rem, 30%, 24rem);
     max-width: calc(100% - 2rem);
     background: rgba(15, 15, 20, 0.95);
     backdrop-filter: blur(12px);
@@ -1540,7 +1652,7 @@
   /* --- Tour detail card --- */
   .tour-detail {
     position: absolute;
-    width: 18rem;
+    width: clamp(16rem, 28%, 22rem);
     max-width: calc(100% - 2rem);
     background: rgba(15, 15, 20, 0.92);
     backdrop-filter: blur(12px);
@@ -1661,6 +1773,7 @@
       animation: none !important;
     }
     .hero-glass,
+    .hero-bg-layer,
     .hero-panel,
     .tour-tooltip,
     .tour-detail {
