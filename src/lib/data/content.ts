@@ -211,7 +211,7 @@ export const experience: ExperienceEntry[] = [
   },
   {
     avatar: 'US',
-    companyUrl: 'https://www.inscom.army.mil/MSC/500MIB/index.html',
+    companyUrl: 'https://en.wikipedia.org/wiki/500th_Military_Intelligence_Brigade_(United_States)',
     role: 'Signals Intelligence Analyst',
     company: 'U.S. Army — 500th MI BDE',
     companyDesc: 'NSA/CSS Hawaii — signals intelligence collection and analysis supporting national and theater intelligence requirements in the Pacific.',
