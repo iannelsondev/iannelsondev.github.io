@@ -26,16 +26,23 @@
       import('three').then((THREE) => {
         if (stopped || !canvasEl || !glassEl) return;
 
+        const dpr = Math.min(window.devicePixelRatio, 2);
         const w = glassEl.offsetWidth;
         const h = glassEl.offsetHeight;
+
+        // Set canvas pixel dimensions explicitly before Three.js takes over
+        canvasEl.width = w * dpr;
+        canvasEl.height = h * dpr;
+        canvasEl.style.width = w + 'px';
+        canvasEl.style.height = h + 'px';
 
         const renderer = new THREE.WebGLRenderer({
           canvas: canvasEl,
           alpha: true,
           antialias: true,
         });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(w, h);
+        renderer.setPixelRatio(dpr);
+        renderer.setSize(w, h, false);
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
@@ -132,10 +139,15 @@
         window.addEventListener('mousemove', onMouse);
 
         function onResize() {
-          if (!glassEl) return;
+          if (!glassEl || !canvasEl) return;
           const nw = glassEl.offsetWidth;
           const nh = glassEl.offsetHeight;
           if (nw === 0 || nh === 0) return;
+          const d = Math.min(window.devicePixelRatio, 2);
+          canvasEl.width = nw * d;
+          canvasEl.height = nh * d;
+          canvasEl.style.width = nw + 'px';
+          canvasEl.style.height = nh + 'px';
           camera.aspect = nw / nh;
           camera.updateProjectionMatrix();
           renderer.setSize(nw, nh, false);
@@ -291,10 +303,10 @@
   }
 
   .hero-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: clamp(3rem, 7vw, 6rem);
-    letter-spacing: -0.03em;
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: clamp(4rem, 9vw, 8rem);
+    letter-spacing: 0.04em;
   }
 
   .hero-first {
