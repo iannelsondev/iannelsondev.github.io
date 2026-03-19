@@ -205,9 +205,9 @@
 
   function handleTourKeydown(e: KeyboardEvent) {
     if (!tourActive) return;
-    if (e.key === 'Escape') closeTour();
-    else if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); nextStep(); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTour(); }
+    else if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); nextStep(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); prevStep(); }
   }
 
   onMount(() => {
@@ -974,6 +974,8 @@
   });
 </script>
 
+<svelte:window onkeydown={handleTourKeydown} />
+
 <!--
   WCAG 1.3.1 — This is the top-level section of the page. The <section> in
   +page.svelte carries aria-label="Home — Introduction".
@@ -1043,11 +1045,9 @@
 
       <!-- VIPR-style guided tour tooltip -->
       {#if tourActive && currentTourStep}
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           class="absolute inset-0"
           style="z-index: 3;"
-          onkeydown={handleTourKeydown}
         >
           <!-- Semi-transparent overlay to dim the graph slightly -->
           <button
