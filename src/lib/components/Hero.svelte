@@ -26,228 +26,270 @@
       import('three').then((THREE) => {
         if (stopped || !canvasEl || !glassEl) return;
 
-        const dpr = Math.min(window.devicePixelRatio, 2);
-        const w = glassEl.offsetWidth;
-        const h = glassEl.offsetHeight;
+        try {
+          const dpr = Math.min(window.devicePixelRatio, 2);
+          const w = glassEl.offsetWidth;
+          const h = glassEl.offsetHeight;
 
-        // Set canvas pixel dimensions explicitly before Three.js takes over
-        canvasEl.width = w * dpr;
-        canvasEl.height = h * dpr;
-        canvasEl.style.width = w + 'px';
-        canvasEl.style.height = h + 'px';
+          canvasEl.width = w * dpr;
+          canvasEl.height = h * dpr;
+          canvasEl.style.width = w + 'px';
+          canvasEl.style.height = h + 'px';
 
-        const renderer = new THREE.WebGLRenderer({
-          canvas: canvasEl,
-          alpha: true,
-          antialias: true,
-        });
-        renderer.setPixelRatio(dpr);
-        renderer.setSize(w, h, false);
+          const renderer = new THREE.WebGLRenderer({
+            canvas: canvasEl,
+            alpha: true,
+            antialias: false,
+          });
+          renderer.setPixelRatio(dpr);
+          renderer.setSize(w, h, false);
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
-        camera.position.z = 8;
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+          camera.position.z = 8;
 
-        // Shared geometry
-        const sphereGeo = new THREE.SphereGeometry(1, 12, 12);
-
-        const INDIGO = 0x6366f1;
-        const CYAN = 0x06b6d4;
-        const WHITE = 0xdde1e8;
-        const COLORS = [INDIGO, INDIGO, CYAN, CYAN, WHITE];
-
-        // Edges
-        const MAX_EDGES = 400;
-        const edgeArr = new Float32Array(MAX_EDGES * 6);
-        const edgeGeo = new THREE.BufferGeometry();
-        edgeGeo.setAttribute('position', new THREE.BufferAttribute(edgeArr, 3));
-        edgeGeo.setDrawRange(0, 0);
-        const edgeMat = new THREE.LineBasicMaterial({ color: INDIGO, transparent: true, opacity: 0.5 });
-        scene.add(new THREE.LineSegments(edgeGeo, edgeMat));
-
-        const nodeGroup = new THREE.Group();
-        scene.add(nodeGroup);
-
-        interface Node {
-          mesh: THREE.Mesh;
-          glow: THREE.Mesh;
-          vx: number; vy: number; vz: number;
-          born: number;
-          lifetime: number;
-          r: number;
-        }
-
-        const nodes: Node[] = [];
-        const COUNT = 50;
-        const EDGE_DIST = 4;
-        const SPREAD = 8;
-
-        function spawn(scatter = false): Node {
-          const r = 0.2 + Math.random() * 0.45;
-          const c = COLORS[Math.floor(Math.random() * COLORS.length)];
-
-          const mat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 1.0 });
-          const mesh = new THREE.Mesh(sphereGeo, mat);
-          mesh.scale.setScalar(r);
-
-          const glowMat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.3, side: THREE.BackSide });
-          const glow = new THREE.Mesh(sphereGeo, glowMat);
-          glow.scale.setScalar(r * 5);
-          mesh.add(glow);
-
-          let x: number, y: number, z: number;
-          if (scatter) {
-            x = (Math.random() - 0.5) * SPREAD * 2;
-            y = (Math.random() - 0.5) * SPREAD * 1.5;
-            z = (Math.random() - 0.5) * 6;
-          } else {
-            const side = Math.floor(Math.random() * 4);
-            z = (Math.random() - 0.5) * 5;
-            if (side === 0) { x = -SPREAD - 2; y = (Math.random() - 0.5) * SPREAD * 2; }
-            else if (side === 1) { x = SPREAD + 2; y = (Math.random() - 0.5) * SPREAD * 2; }
-            else if (side === 2) { y = -SPREAD; x = (Math.random() - 0.5) * SPREAD * 2; }
-            else { y = SPREAD; x = (Math.random() - 0.5) * SPREAD * 2; }
-          }
-          mesh.position.set(x, y, z);
-          nodeGroup.add(mesh);
-
-          const speed = 0.006 + Math.random() * 0.01;
-          const angle = Math.atan2(-y, -x) + (Math.random() - 0.5) * 1;
-
-          return {
-            mesh, glow,
-            vx: scatter ? (Math.random() - 0.5) * 0.012 : Math.cos(angle) * speed,
-            vy: scatter ? (Math.random() - 0.5) * 0.012 : Math.sin(angle) * speed,
-            vz: (Math.random() - 0.5) * 0.004,
-            born: performance.now() - (scatter ? Math.random() * 15000 : 0),
-            lifetime: 10000 + Math.random() * 12000,
-            r,
-          };
-        }
-
-        // Seed initial nodes
-        for (let i = 0; i < COUNT; i++) nodes.push(spawn(true));
-
-        let targetCX = 0, targetCY = 0;
-        let lastSpawn = performance.now();
-
-        function onMouse(e: MouseEvent) {
-          const rect = glassEl!.getBoundingClientRect();
-          targetCX = ((e.clientX - rect.left) / rect.width - 0.5) * 1.5;
-          targetCY = -((e.clientY - rect.top) / rect.height - 0.5) * 1.5;
-        }
-        window.addEventListener('mousemove', onMouse);
-
-        function onResize() {
-          if (!glassEl || !canvasEl) return;
-          const nw = glassEl.offsetWidth;
-          const nh = glassEl.offsetHeight;
-          if (nw === 0 || nh === 0) return;
-          const d = Math.min(window.devicePixelRatio, 2);
-          canvasEl.width = nw * d;
-          canvasEl.height = nh * d;
-          canvasEl.style.width = nw + 'px';
-          canvasEl.style.height = nh + 'px';
-          camera.aspect = nw / nh;
-          camera.updateProjectionMatrix();
-          renderer.setSize(nw, nh, false);
-        }
-        window.addEventListener('resize', onResize);
-
-        let edgeFrame = 0;
-
-        renderer.setAnimationLoop(() => {
-          const now = performance.now();
-
-          // Spawn
-          if (nodes.length < COUNT && now - lastSpawn > 350) {
-            nodes.push(spawn(false));
-            lastSpawn = now;
+          // --- Glow texture via canvas gradient ---
+          function createGlowTexture(): THREE.CanvasTexture {
+            const size = 128;
+            const c = document.createElement('canvas');
+            c.width = size;
+            c.height = size;
+            const ctx = c.getContext('2d')!;
+            const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+            gradient.addColorStop(0,   'rgba(255,255,255,1)');
+            gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+            gradient.addColorStop(0.5, 'rgba(99,102,241,0.4)');
+            gradient.addColorStop(1,   'rgba(99,102,241,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            return new THREE.CanvasTexture(c);
           }
 
-          // Update
-          for (let i = nodes.length - 1; i >= 0; i--) {
-            const n = nodes[i];
-            const t = (now - n.born) / n.lifetime;
-            const fade = t > 0.85 ? 1 - (t - 0.85) / 0.15 : 1;
-            (n.mesh.material as THREE.MeshBasicMaterial).opacity = fade * 1.0;
-            (n.glow.material as THREE.MeshBasicMaterial).opacity = fade * 0.3;
-            n.mesh.scale.setScalar(n.r * (t > 0.85 ? fade : 1));
+          const glowTexture = createGlowTexture();
 
-            if (t >= 1) {
-              nodeGroup.remove(n.mesh);
-              (n.mesh.material as THREE.MeshBasicMaterial).dispose();
-              (n.glow.material as THREE.MeshBasicMaterial).dispose();
-              nodes.splice(i, 1);
-              continue;
+          const INDIGO = 0x6366f1;
+          const CYAN   = 0x06b6d4;
+          const WHITE  = 0xffffff;
+          // Weighted toward indigo/cyan — white used for small accent nodes
+          const COLORS = [INDIGO, INDIGO, INDIGO, CYAN, CYAN, WHITE];
+
+          // --- Edges ---
+          const MAX_EDGES = 400;
+          const edgeArr = new Float32Array(MAX_EDGES * 6);
+          const edgeGeo = new THREE.BufferGeometry();
+          edgeGeo.setAttribute('position', new THREE.BufferAttribute(edgeArr, 3));
+          edgeGeo.setDrawRange(0, 0);
+          const edgeMat = new THREE.LineBasicMaterial({
+            color: INDIGO,
+            transparent: true,
+            opacity: 0.4,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          scene.add(new THREE.LineSegments(edgeGeo, edgeMat));
+
+          const nodeGroup = new THREE.Group();
+          scene.add(nodeGroup);
+
+          interface Node {
+            sprite: THREE.Sprite;
+            mat: THREE.SpriteMaterial;
+            vx: number; vy: number; vz: number;
+            born: number;
+            lifetime: number;
+            baseScale: number;
+            color: number;
+          }
+
+          const nodes: Node[] = [];
+          const COUNT  = 45;
+          const EDGE_DIST = 3.5;
+          const SPREAD = 6;
+
+          function spawn(scatter = false): Node {
+            const colorIndex = Math.floor(Math.random() * COLORS.length);
+            const color = COLORS[colorIndex];
+            // White nodes are small accent dots; colored nodes are larger
+            const baseScale = color === WHITE
+              ? 0.3 + Math.random() * 0.25
+              : 0.55 + Math.random() * 0.95;
+
+            const mat = new THREE.SpriteMaterial({
+              map: glowTexture,
+              color,
+              transparent: true,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+            });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(baseScale, baseScale, 1);
+
+            let x: number, y: number, z: number;
+            if (scatter) {
+              x = (Math.random() - 0.5) * SPREAD * 2;
+              y = (Math.random() - 0.5) * SPREAD * 1.5;
+              z = (Math.random() - 0.5) * 5;
+            } else {
+              const side = Math.floor(Math.random() * 4);
+              z = (Math.random() - 0.5) * 5;
+              if (side === 0)      { x = -SPREAD - 2; y = (Math.random() - 0.5) * SPREAD * 2; }
+              else if (side === 1) { x =  SPREAD + 2; y = (Math.random() - 0.5) * SPREAD * 2; }
+              else if (side === 2) { y = -SPREAD;     x = (Math.random() - 0.5) * SPREAD * 2; }
+              else                 { y =  SPREAD;     x = (Math.random() - 0.5) * SPREAD * 2; }
+            }
+            sprite.position.set(x, y, z);
+            nodeGroup.add(sprite);
+
+            const speed = 0.006 + Math.random() * 0.01;
+            const angle = Math.atan2(-y, -x) + (Math.random() - 0.5) * 1;
+
+            return {
+              sprite,
+              mat,
+              vx: scatter ? (Math.random() - 0.5) * 0.012 : Math.cos(angle) * speed,
+              vy: scatter ? (Math.random() - 0.5) * 0.012 : Math.sin(angle) * speed,
+              vz: (Math.random() - 0.5) * 0.004,
+              born: performance.now() - (scatter ? Math.random() * 15000 : 0),
+              lifetime: 10000 + Math.random() * 12000,
+              baseScale,
+              color,
+            };
+          }
+
+          // Seed initial nodes
+          for (let i = 0; i < COUNT; i++) nodes.push(spawn(true));
+
+          let targetCX = 0, targetCY = 0;
+          let lastSpawn = performance.now();
+
+          function onMouse(e: MouseEvent) {
+            const rect = glassEl!.getBoundingClientRect();
+            targetCX = ((e.clientX - rect.left) / rect.width  - 0.5) * 1.5;
+            targetCY = -((e.clientY - rect.top)  / rect.height - 0.5) * 1.5;
+          }
+          window.addEventListener('mousemove', onMouse);
+
+          function onResize() {
+            if (!glassEl || !canvasEl) return;
+            const nw = glassEl.offsetWidth;
+            const nh = glassEl.offsetHeight;
+            if (nw === 0 || nh === 0) return;
+            const d = Math.min(window.devicePixelRatio, 2);
+            canvasEl.width  = nw * d;
+            canvasEl.height = nh * d;
+            canvasEl.style.width  = nw + 'px';
+            canvasEl.style.height = nh + 'px';
+            camera.aspect = nw / nh;
+            camera.updateProjectionMatrix();
+            renderer.setSize(nw, nh, false);
+          }
+          window.addEventListener('resize', onResize);
+
+          let edgeFrame = 0;
+
+          renderer.setAnimationLoop(() => {
+            const now = performance.now();
+
+            // Spawn replacement nodes
+            if (nodes.length < COUNT && now - lastSpawn > 350) {
+              nodes.push(spawn(false));
+              lastSpawn = now;
             }
 
-            const p = n.mesh.position;
-            n.vx -= p.x * 0.0004;
-            n.vy -= p.y * 0.0004;
-            n.vz -= p.z * 0.0002;
+            // Update nodes
+            for (let i = nodes.length - 1; i >= 0; i--) {
+              const n = nodes[i];
+              const t = (now - n.born) / n.lifetime;
+              // Fade in over first 5%, fade out over last 15%
+              const fadeIn  = t < 0.05 ? t / 0.05 : 1;
+              const fadeOut = t > 0.85 ? 1 - (t - 0.85) / 0.15 : 1;
+              const alpha = fadeIn * fadeOut;
 
-            for (let j = 0; j < nodes.length; j++) {
-              if (i === j) continue;
-              const o = nodes[j].mesh.position;
-              const dx = p.x - o.x, dy = p.y - o.y, dz = p.z - o.z;
-              const d2 = dx * dx + dy * dy + dz * dz;
-              if (d2 < 3 && d2 > 0.01) {
-                const d = Math.sqrt(d2);
-                const f = 0.0015 / d2;
-                n.vx += (dx / d) * f;
-                n.vy += (dy / d) * f;
-                n.vz += (dz / d) * f;
+              n.mat.opacity = alpha;
+              const sc = n.baseScale * (t > 0.85 ? fadeOut : 1);
+              n.sprite.scale.set(sc, sc, 1);
+
+              if (t >= 1) {
+                nodeGroup.remove(n.sprite);
+                n.mat.dispose();
+                nodes.splice(i, 1);
+                continue;
               }
-            }
 
-            n.vx *= 0.985; n.vy *= 0.985; n.vz *= 0.985;
-            p.x += n.vx; p.y += n.vy; p.z += n.vz;
-          }
+              const p = n.sprite.position;
 
-          // Edges every 3 frames
-          if (++edgeFrame >= 3) {
-            edgeFrame = 0;
-            let ec = 0;
-            const pos = edgeGeo.attributes.position as THREE.BufferAttribute;
-            const a = pos.array as Float32Array;
-            for (let i = 0; i < nodes.length && ec < MAX_EDGES; i++) {
-              const pa = nodes[i].mesh.position;
-              for (let j = i + 1; j < nodes.length && ec < MAX_EDGES; j++) {
-                const pb = nodes[j].mesh.position;
-                const dx = pa.x - pb.x, dy = pa.y - pb.y, dz = pa.z - pb.z;
-                if (Math.sqrt(dx * dx + dy * dy + dz * dz) < EDGE_DIST) {
-                  const b = ec * 6;
-                  a[b] = pa.x; a[b+1] = pa.y; a[b+2] = pa.z;
-                  a[b+3] = pb.x; a[b+4] = pb.y; a[b+5] = pb.z;
-                  ec++;
+              // Gentle centre-pull
+              n.vx -= p.x * 0.0004;
+              n.vy -= p.y * 0.0004;
+              n.vz -= p.z * 0.0002;
+
+              // Neighbour repulsion
+              for (let j = 0; j < nodes.length; j++) {
+                if (i === j) continue;
+                const o = nodes[j].sprite.position;
+                const dx = p.x - o.x, dy = p.y - o.y, dz = p.z - o.z;
+                const d2 = dx * dx + dy * dy + dz * dz;
+                if (d2 < 3 && d2 > 0.01) {
+                  const d = Math.sqrt(d2);
+                  const f = 0.0015 / d2;
+                  n.vx += (dx / d) * f;
+                  n.vy += (dy / d) * f;
+                  n.vz += (dz / d) * f;
                 }
               }
+
+              n.vx *= 0.985; n.vy *= 0.985; n.vz *= 0.985;
+              p.x += n.vx; p.y += n.vy; p.z += n.vz;
             }
-            pos.needsUpdate = true;
-            edgeGeo.setDrawRange(0, ec * 2);
-          }
 
-          nodeGroup.rotation.y += 0.0008;
-          camera.position.x += (targetCX - camera.position.x) * 0.025;
-          camera.position.y += (targetCY - camera.position.y) * 0.025;
-          renderer.render(scene, camera);
-        });
+            // Rebuild edges every 3 frames
+            if (++edgeFrame >= 3) {
+              edgeFrame = 0;
+              let ec = 0;
+              const pos = edgeGeo.attributes.position as THREE.BufferAttribute;
+              const a = pos.array as Float32Array;
+              for (let i = 0; i < nodes.length && ec < MAX_EDGES; i++) {
+                const pa = nodes[i].sprite.position;
+                for (let j = i + 1; j < nodes.length && ec < MAX_EDGES; j++) {
+                  const pb = nodes[j].sprite.position;
+                  const dx = pa.x - pb.x, dy = pa.y - pb.y, dz = pa.z - pb.z;
+                  if (Math.sqrt(dx * dx + dy * dy + dz * dz) < EDGE_DIST) {
+                    const b = ec * 6;
+                    a[b]   = pa.x; a[b+1] = pa.y; a[b+2] = pa.z;
+                    a[b+3] = pb.x; a[b+4] = pb.y; a[b+5] = pb.z;
+                    ec++;
+                  }
+                }
+              }
+              pos.needsUpdate = true;
+              edgeGeo.setDrawRange(0, ec * 2);
+            }
 
-        cleanupFn = () => {
-          renderer.setAnimationLoop(null);
-          window.removeEventListener('mousemove', onMouse);
-          window.removeEventListener('resize', onResize);
-          for (const n of nodes) {
-            nodeGroup.remove(n.mesh);
-            (n.mesh.material as THREE.MeshBasicMaterial).dispose();
-            (n.glow.material as THREE.MeshBasicMaterial).dispose();
-          }
-          sphereGeo.dispose();
-          edgeGeo.dispose();
-          edgeMat.dispose();
-          renderer.dispose();
-        };
+            // Slow auto-rotation + mouse parallax
+            nodeGroup.rotation.y += 0.0008;
+            camera.position.x += (targetCX - camera.position.x) * 0.025;
+            camera.position.y += (targetCY - camera.position.y) * 0.025;
+            renderer.render(scene, camera);
+          });
+
+          cleanupFn = () => {
+            renderer.setAnimationLoop(null);
+            window.removeEventListener('mousemove', onMouse);
+            window.removeEventListener('resize', onResize);
+            for (const n of nodes) {
+              nodeGroup.remove(n.sprite);
+              n.mat.dispose();
+            }
+            glowTexture.dispose();
+            edgeGeo.dispose();
+            edgeMat.dispose();
+            renderer.dispose();
+          };
+
+        } catch (e) {
+          console.warn('WebGL not available, skipping Three.js hero graph', e);
+          // Glass panel dark background still shows — no further action needed
+        }
       });
     });
 
