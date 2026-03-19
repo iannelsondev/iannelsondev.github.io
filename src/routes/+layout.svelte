@@ -1,5 +1,7 @@
 <script lang="ts">
   import '../app.css';
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import Nav from '$lib/components/Nav.svelte';
   import PixelGrid from '$lib/components/PixelGrid.svelte';
 
@@ -8,6 +10,36 @@
   }
 
   let { children }: Props = $props();
+
+  onMount(async () => {
+    const fullpage = await import('fullpage.js');
+    // @ts-ignore
+    await import('fullpage.js/dist/fullpage.css');
+
+    new fullpage.default('#fullpage', {
+      licenseKey: 'gplv3-license',
+      autoScrolling: true,
+      scrollOverflow: true,
+      scrollingSpeed: 700,
+      fitToSection: true,
+      anchors: ['home', 'about', 'experience', 'skills', 'projects', 'education', 'blog'],
+      menu: '#fp-nav',
+      css3: true,
+      easing: 'easeInOutCubic',
+      navigation: false,
+      onLeave: (_origin: any, destination: any) => {
+        // Dispatch custom event for Nav scrollspy
+        window.dispatchEvent(new CustomEvent('fp-section-change', {
+          detail: { index: destination.index, anchor: destination.anchor }
+        }));
+      }
+    });
+
+    return () => {
+      // @ts-ignore
+      if (window.fullpage_api) window.fullpage_api.destroy('all');
+    };
+  });
 </script>
 
 <svelte:head>
@@ -22,7 +54,7 @@
 <Nav />
 
 <!-- Main content, offset for sidebar on md+ -->
-<div class="relative z-10 main-content snap-container">
+<div id="fullpage" class="relative z-10 main-content">
   {@render children()}
 </div>
 
@@ -31,27 +63,5 @@
     .main-content {
       margin-left: clamp(180px, 14vw, 260px);
     }
-  }
-
-  .snap-container {
-    height: 100vh;
-    overflow-y: auto;
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
-  }
-
-  .snap-container :global(section) {
-    scroll-snap-align: start;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  /* Experience is long — let it flow naturally but still snap at the top */
-  .snap-container :global(#experience) {
-    min-height: auto;
-    justify-content: flex-start;
-    padding-top: 5vh;
   }
 </style>

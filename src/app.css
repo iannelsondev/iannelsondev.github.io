@@ -23,7 +23,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  overflow: hidden; /* fullPage.js handles scrolling */
 }
 
 body {

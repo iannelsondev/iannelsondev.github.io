@@ -17,32 +17,26 @@
   function handleNavClick(e: MouseEvent | KeyboardEvent, href: string) {
     if (e.type === 'keydown' && (e as KeyboardEvent).key !== 'Enter' && (e as KeyboardEvent).key !== ' ') return;
     e.preventDefault();
-    const id = href.replace('#', '');
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const anchor = href.replace('#', '');
+    // Use fullPage.js API if available
+    // @ts-ignore
+    if (window.fullpage_api) {
+      // @ts-ignore
+      window.fullpage_api.moveTo(anchor);
     }
     mobileOpen = false;
   }
 
   onMount(() => {
-    const container = document.querySelector('.snap-container');
-    const sections = document.querySelectorAll<HTMLElement>('section[id]');
-
-    const obs = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          activeSection = entry.target.id;
-        }
+    // Listen for fullPage.js section changes
+    function onSectionChange(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.anchor) {
+        activeSection = detail.anchor;
       }
-    }, {
-      root: container,
-      threshold: 0.3,
-      rootMargin: '-10% 0px -60% 0px'
-    });
-
-    sections.forEach(sec => obs.observe(sec));
-    return () => obs.disconnect();
+    }
+    window.addEventListener('fp-section-change', onSectionChange);
+    return () => window.removeEventListener('fp-section-change', onSectionChange);
   });
 </script>
 
