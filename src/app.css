@@ -60,3 +60,40 @@ body {
     width: 2px;
   }
 }
+
+/* fullPage.js arrow overrides */
+.fp-controlArrow {
+  border: none !important;
+  width: 40px !important;
+  height: 40px !important;
+  background: rgba(99, 102, 241, 0.15) !important;
+  border-radius: 50% !important;
+  margin-top: -20px !important;
+  transition: background 0.2s !important;
+}
+.fp-controlArrow:hover {
+  background: rgba(99, 102, 241, 0.35) !important;
+}
+.fp-controlArrow.fp-prev {
+  left: 20px !important;
+}
+.fp-controlArrow.fp-next {
+  right: 20px !important;
+}
+.fp-controlArrow::after {
+  content: '' !important;
+  display: block !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-right: 2px solid #6366f1 !important;
+  border-bottom: 2px solid #6366f1 !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+}
+.fp-controlArrow.fp-prev::after {
+  transform: translate(-35%, -50%) rotate(135deg) !important;
+}
+.fp-controlArrow.fp-next::after {
+  transform: translate(-65%, -50%) rotate(-45deg) !important;
+}
