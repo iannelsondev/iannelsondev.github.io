@@ -6,10 +6,8 @@ export async function load({ params }: { params: { slug: string } }) {
   const post = getPost(params.slug);
   if (!post) throw error(404, `Post not found: ${params.slug}`);
 
-  // Return only serializable fields
-  const { component, ...meta } = post;
-
-  return { post: meta };
+  // Only return the slug — everything else resolved in +page.svelte
+  return { slug: params.slug };
 }
 
 export function entries() {

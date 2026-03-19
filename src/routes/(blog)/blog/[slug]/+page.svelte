@@ -1,38 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { getPost } from '$lib/blog';
   import AudioNarrator from '$lib/components/AudioNarrator.svelte';
-  import type { BlogSection } from '$lib/blog/types';
   import type { Component } from 'svelte';
 
-  // Eagerly import all post components at build time — keys are file paths
+  // Eagerly import all post components at build time
   const postModules = import.meta.glob('/src/lib/blog/posts/*/Post.svelte', { eager: true }) as Record<string, { default: Component }>;
 
-  // Build slug → component map
-  function getPostComponent(slug: string): Component | undefined {
-    const key = `/src/lib/blog/posts/${slug}/Post.svelte`;
-    return postModules[key]?.default;
-  }
-
-  interface PostData {
-    slug: string;
-    title: string;
-    date: string;
-    summary: string;
-    coverImage?: string;
-    tags: string[];
-    readingTime: number;
-    sections: BlogSection[];
-  }
-
   interface Props {
-    data: {
-      post: PostData;
-    };
+    data: { slug: string };
   }
 
   let { data }: Props = $props();
 
-  const PostComponent = $derived(getPostComponent(data.post.slug));
+  // Resolve post metadata and component from slug — no serialization needed
+  const post = getPost(data.slug)!;
+  const PostComponent = postModules[`/src/lib/blog/posts/${data.slug}/Post.svelte`]?.default;
 
   let scrollProgress = $state(0);
 
@@ -46,7 +29,7 @@
   });
 
   const formattedDate = $derived(
-    new Date(data.post.date).toLocaleDateString('en-US', {
+    new Date(post.date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -55,39 +38,39 @@
 </script>
 
 <svelte:head>
-  <title>{data.post.title} — Ian Nelson</title>
-  <meta name="description" content={data.post.summary} />
-  <link rel="canonical" href="https://iannelsondev.github.io/blog/{data.post.slug}/" />
+  <title>{post.title} — Ian Nelson</title>
+  <meta name="description" content={post.summary} />
+  <link rel="canonical" href="https://iannelsondev.github.io/blog/{post.slug}/" />
 
   <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://iannelsondev.github.io/blog/{data.post.slug}/" />
-  <meta property="og:title" content="{data.post.title} — Ian Nelson" />
-  <meta property="og:description" content={data.post.summary} />
-  {#if data.post.coverImage}
-    <meta property="og:image" content="https://iannelsondev.github.io{data.post.coverImage}" />
+  <meta property="og:url" content="https://iannelsondev.github.io/blog/{post.slug}/" />
+  <meta property="og:title" content="{post.title} — Ian Nelson" />
+  <meta property="og:description" content={post.summary} />
+  {#if post.coverImage}
+    <meta property="og:image" content="https://iannelsondev.github.io{post.coverImage}" />
   {/if}
-  <meta property="article:published_time" content={data.post.date} />
-  {#each data.post.tags as tag}
+  <meta property="article:published_time" content={post.date} />
+  {#each post.tags as tag}
     <meta property="article:tag" content={tag} />
   {/each}
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="{data.post.title} — Ian Nelson" />
-  <meta name="twitter:description" content={data.post.summary} />
-  {#if data.post.coverImage}
-    <meta name="twitter:image" content="https://iannelsondev.github.io{data.post.coverImage}" />
+  <meta name="twitter:title" content="{post.title} — Ian Nelson" />
+  <meta name="twitter:description" content={post.summary} />
+  {#if post.coverImage}
+    <meta name="twitter:image" content="https://iannelsondev.github.io{post.coverImage}" />
   {/if}
 
   {@html `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": data.post.title,
-    "description": data.post.summary,
-    "datePublished": data.post.date,
+    "headline": post.title,
+    "description": post.summary,
+    "datePublished": post.date,
     "author": { "@type": "Person", "name": "Ian Nelson", "url": "https://iannelsondev.github.io" },
     "publisher": { "@type": "Person", "name": "Ian Nelson" },
-    "mainEntityOfPage": `https://iannelsondev.github.io/blog/${data.post.slug}/`,
-    ...(data.post.coverImage ? { "image": `https://iannelsondev.github.io${data.post.coverImage}` } : {})
+    "mainEntityOfPage": `https://iannelsondev.github.io/blog/${post.slug}/`,
+    ...(post.coverImage ? { "image": `https://iannelsondev.github.io${post.coverImage}` } : {})
   })}</script>`}
 </svelte:head>
 
@@ -105,9 +88,9 @@
 <article class="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-12">
   <!-- Header -->
   <header class="mb-12">
-    {#if data.post.coverImage}
+    {#if post.coverImage}
       <img
-        src={data.post.coverImage}
+        src={post.coverImage}
         alt=""
         class="w-full aspect-video object-cover rounded-xl mb-8 border border-[rgba(99,102,241,0.15)]"
       />
@@ -118,18 +101,18 @@
       style="font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.1;"
     >
       <span style="background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        {data.post.title}
+        {post.title}
       </span>
     </h1>
 
     <div class="flex flex-wrap items-center gap-4 font-mono text-[#94a3b8]" style="font-size: clamp(0.7rem, 0.8vw, 0.8rem);">
-      <time datetime={data.post.date}>{formattedDate}</time>
+      <time datetime={post.date}>{formattedDate}</time>
       <span aria-hidden="true">&middot;</span>
-      <span>{data.post.readingTime} min read</span>
+      <span>{post.readingTime} min read</span>
     </div>
 
     <div class="flex flex-wrap gap-2 mt-4">
-      {#each data.post.tags as tag}
+      {#each post.tags as tag}
         <span
           class="px-2 py-0.5 rounded-full font-mono text-xs tracking-wider uppercase border border-[rgba(99,102,241,0.25)] text-[var(--indigo-accessible)] bg-[rgba(99,102,241,0.08)]"
         >{tag}</span>
@@ -138,11 +121,11 @@
   </header>
 
   <!-- Table of Contents -->
-  {#if data.post.sections.length > 0}
+  {#if post.sections.length > 0}
     <nav class="mb-12 p-5 rounded-xl" style="background: var(--card-bg); border: 1px solid var(--card-border);" aria-label="Table of contents">
       <h2 class="font-mono text-xs tracking-[0.3em] uppercase text-[var(--indigo-accessible)] mb-3">Contents</h2>
       <ol class="flex flex-col gap-1.5">
-        {#each data.post.sections as section, i}
+        {#each post.sections as section, i}
           <li>
             <a
               href="#{section.id}"
@@ -177,10 +160,9 @@
 </article>
 
 <!-- Audio narrator -->
-<AudioNarrator sections={data.post.sections} audioSrc="/blog/{data.post.slug}/narration.mp3" />
+<AudioNarrator sections={post.sections} audioSrc="/blog/{post.slug}/narration.mp3" />
 
 <style>
-  /* Blog prose styles — scoped to post content */
   .prose-blog :global(h2) {
     font-family: 'Bebas Neue', cursive;
     font-size: clamp(1.5rem, 3vw, 2.25rem);
