@@ -27,8 +27,14 @@ export interface ProjectEntry {
 export interface EducationEntry {
   degree: string;
   school: string;
+  schoolUrl?: string;
+  schoolDesc: string;
   detail: string;
   years: string;
+  location: string;
+  lat: number;
+  lon: number;
+  avatar: string;
 }
 
 export interface MetaCard {
@@ -286,21 +292,36 @@ export const projects: ProjectEntry[] = [
 
 export const education: EducationEntry[] = [
   {
+    avatar: 'UM',
     degree: 'B.S. Computer Science',
     school: 'University of Maryland Global Campus',
-    detail: '3.8 GPA · Upsilon Pi Epsilon Honor Society',
-    years: '2010 – 2014'
+    schoolUrl: 'https://www.umgc.edu',
+    schoolDesc: 'Public university within the University System of Maryland, specializing in online and distance education for working adults and military-affiliated students.',
+    detail: '3.8 GPA · Upsilon Pi Epsilon Honor Society · Dean\'s Award',
+    years: '2010 – 2014',
+    location: 'Adelphi, MD',
+    lat: 38.9829, lon: -76.9718
   },
   {
+    avatar: 'AT',
     degree: 'Computer Science',
     school: 'Arkansas Tech University',
+    schoolUrl: 'https://www.atu.edu',
+    schoolDesc: 'Public university in Russellville, Arkansas. Attended while working full-time as campus IT staff. Focused on CS core and electrical engineering electives.',
     detail: '3.8 GPA · IEEE / ACM Member',
-    years: '2007 – 2008'
+    years: '2007 – 2008',
+    location: 'Russellville, AR',
+    lat: 35.2784, lon: -93.1338
   },
   {
-    degree: 'Arkansas School for Mathematics, Sciences and the Arts',
-    school: 'Residential Honors Program',
-    detail: '3.9 GPA · Intel ISEF Finalist',
-    years: '1998 – 2000'
+    avatar: 'AS',
+    degree: 'Computer Science',
+    school: 'Arkansas School for Mathematics, Sciences and the Arts',
+    schoolUrl: 'https://www.asmsa.org',
+    schoolDesc: 'One of sixteen public residential high schools in the country for gifted students with aptitude in STEM. Created by the Arkansas Legislature in 1991.',
+    detail: '3.9 GPA · Intel ISEF Finalist · Computer Programming Team',
+    years: '1998 – 2000',
+    location: 'Hot Springs, AR',
+    lat: 34.5037, lon: -93.0552
   }
 ];
