@@ -4,7 +4,78 @@
   let canvasEl = $state<HTMLCanvasElement | null>(null);
   let glassEl = $state<HTMLDivElement | null>(null);
   let webglReady = $state(false);
-  let showWalkthrough = $state(false);
+  let tourActive = $state(false);
+  let tourStep = $state(0);
+
+  interface TourStepDef {
+    title: string;
+    description: string;
+    content: 'text' | 'legend' | 'communities' | 'edges' | 'inference';
+    position: 'bottom-right' | 'bottom-left' | 'top-right';
+  }
+
+  const tourSteps: TourStepDef[] = [
+    {
+      title: 'Knowledge Graph',
+      description: 'This is a live community-oriented knowledge graph — the same architecture powering VIPR and Talon Black. Each element represents a concept from GraphRAG pipelines.',
+      content: 'text',
+      position: 'bottom-right',
+    },
+    {
+      title: 'Community Detection',
+      description: 'Colored clusters are communities — densely connected subgraphs discovered by algorithms like Leiden. In GraphRAG, communities partition a knowledge graph into coherent topic groups that can be summarized and queried independently.',
+      content: 'communities',
+      position: 'bottom-left',
+    },
+    {
+      title: 'Vectorized Nodes',
+      description: 'Each sphere is an entity — a document, concept, or extracted fact — embedded into a vector space. Proximity reflects semantic similarity from embeddings, enabling retrieval-augmented generation over structured knowledge rather than flat document chunks.',
+      content: 'legend',
+      position: 'bottom-right',
+    },
+    {
+      title: 'Cross-Community Edges',
+      description: 'Dashed lines are inter-community bridges — relationships an NLP pipeline discovers through entity resolution, coreference, and relation extraction. These connections are what make graph-based RAG more powerful than naive vector search alone.',
+      content: 'edges',
+      position: 'bottom-left',
+    },
+    {
+      title: 'Edge Inference',
+      description: 'This all runs locally. On-prem LLM inference with vLLM and ONNX edge models means entity extraction, embedding, and graph construction happen where the data lives — no cloud dependency, no data exfiltration, full autonomy.',
+      content: 'inference',
+      position: 'bottom-right',
+    },
+  ];
+
+  const currentTourStep = $derived(tourSteps[tourStep]);
+  const isFirstStep = $derived(tourStep === 0);
+  const isLastStep = $derived(tourStep === tourSteps.length - 1);
+
+  function startTour() {
+    tourStep = 0;
+    tourActive = true;
+  }
+
+  function closeTour() {
+    tourActive = false;
+    tourStep = 0;
+  }
+
+  function nextStep() {
+    if (isLastStep) closeTour();
+    else tourStep++;
+  }
+
+  function prevStep() {
+    if (tourStep > 0) tourStep--;
+  }
+
+  function handleTourKeydown(e: KeyboardEvent) {
+    if (!tourActive) return;
+    if (e.key === 'Escape') closeTour();
+    else if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); nextStep(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+  }
 
   onMount(() => {
     if (!canvasEl || !glassEl) return;
@@ -420,28 +491,18 @@
       {#if webglReady}
         <button
           class="info-toggle"
-          onclick={() => showWalkthrough = !showWalkthrough}
-          aria-label={showWalkthrough ? 'Close graph explanation' : 'What is this graph?'}
-          aria-expanded={showWalkthrough}
+          onclick={() => tourActive ? closeTour() : startTour()}
+          aria-label={tourActive ? 'Close graph walkthrough' : 'What is this graph?'}
+          aria-expanded={tourActive}
         >
-          <span class="info-toggle-icon">{showWalkthrough ? '✕' : '?'}</span>
+          <span class="info-toggle-icon">{tourActive ? '✕' : '?'}</span>
         </button>
       {/if}
 
       <!-- Text content — in flow so the glass panel gets intrinsic height -->
-      <div class="relative flex items-center justify-center hero-panel {showWalkthrough ? 'hero-panel-hidden' : 'hero-panel-visible'}" style="z-index: 2;">
+      <div class="relative flex items-center justify-center hero-panel {tourActive ? 'hero-panel-hidden' : 'hero-panel-visible'}" style="z-index: 2;">
         <div class="{webglReady ? 'hero-text-glass' : ''} rounded-xl px-8 sm:px-12 md:px-16 py-14 md:py-20 max-w-2xl w-full mx-4">
           <div class="flex flex-col items-center text-center">
-            <!--
-              WCAG 1.4.3 — Gradient text on h1: the gradient spans #6366f1
-              to #06b6d4 on a very dark background. The -webkit-text-fill-color
-              approach means the text colour for AT and fallback rendering is
-              the background fill of the element. We rely on the gradient being
-              light enough; the lighter end (#06b6d4) is 5.8:1 on #0a0a0f.
-              The -webkit-text-fill-color transparent is presentation-only;
-              the plain color fallback on hero-last is set via color property
-              in the style block below for non-webkit engines.
-            -->
             <h1 class="hero-name leading-[0.9] mb-5">
               <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
             </h1>
@@ -454,11 +515,6 @@
               Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
             </p>
 
-            <!--
-              WCAG 2.4.4 — Each link has a clear, descriptive label.
-              External links include "(opens in new tab)" for screen reader users.
-              WCAG 2.4.7 — Focus styles for .hero-btn defined in <style> below.
-            -->
             <div class="flex flex-wrap gap-3 justify-center">
               <a
                 href="https://linkedin.com/in/iannelsondev"
@@ -480,44 +536,148 @@
         </div>
       </div>
 
-      <!-- Graph walkthrough overlay -->
-      <div class="absolute inset-0 flex items-center justify-center hero-panel {showWalkthrough ? 'hero-panel-visible' : 'hero-panel-hidden'}" style="z-index: {showWalkthrough ? 2 : -1};" aria-hidden={!showWalkthrough}>
-        <div class="hero-text-glass rounded-xl px-8 sm:px-12 md:px-16 py-10 md:py-14 max-w-2xl w-full mx-4">
-          <div class="flex flex-col gap-6">
-            <h2 class="font-mono uppercase tracking-[0.25em] text-[0.7rem] walkthrough-heading">What You're Seeing</h2>
+      <!-- VIPR-style guided tour tooltip -->
+      {#if tourActive && currentTourStep}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+          class="absolute inset-0"
+          style="z-index: 3;"
+          onkeydown={handleTourKeydown}
+        >
+          <!-- Semi-transparent overlay to dim the graph slightly -->
+          <button
+            class="absolute inset-0 cursor-default"
+            style="background: rgba(0, 0, 0, 0.25);"
+            onclick={closeTour}
+            tabindex="-1"
+            aria-label="Close tour"
+          ></button>
 
-            <div class="flex flex-col gap-5">
-              <div class="walkthrough-item">
-                <div class="walkthrough-label">Community Detection</div>
-                <p class="walkthrough-text">
-                  Each colored cluster is a <strong class="text-[#f1f5f9]">community</strong> — a densely connected subgraph discovered by algorithms like Louvain or Leiden. In GraphRAG, communities partition a knowledge graph into coherent topic groups that can be summarized and queried independently.
+          <!-- Tooltip -->
+          <div class="tour-tooltip tour-pos-{currentTourStep.position}">
+            <!-- Progress -->
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-[9px] text-[#64748b] uppercase tracking-wider">
+                {tourStep + 1} / {tourSteps.length}
+              </span>
+              <div class="flex gap-1 ml-auto">
+                {#each tourSteps as _, i}
+                  <span
+                    class="w-1.5 h-1.5 rounded-full transition-colors {i === tourStep ? 'bg-[#94a3b8]' : i < tourStep ? 'bg-[#475569]' : 'bg-[#1e293b]'}"
+                  ></span>
+                {/each}
+              </div>
+            </div>
+
+            <!-- Title + Description -->
+            <h3 class="text-sm font-medium text-[#e2e8f0] mb-1">{currentTourStep.title}</h3>
+            <p class="text-xs text-[#94a3b8] leading-relaxed mb-2">{currentTourStep.description}</p>
+
+            <!-- Content blocks -->
+            {#if currentTourStep.content === 'communities'}
+              <div class="mt-1 space-y-1 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-sm shrink-0" style="background: rgba(96, 165, 250, 0.3); border: 1px solid rgba(96, 165, 250, 0.5);"></span>
+                  <span class="text-[#94a3b8]">Translucent boxes group communities</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-sm shrink-0" style="background: rgba(52, 211, 153, 0.3); border: 1px solid rgba(52, 211, 153, 0.5);"></span>
+                  <span class="text-[#94a3b8]">Each community gets a distinct color</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-sm shrink-0" style="background: rgba(251, 191, 36, 0.3); border: 1px solid rgba(251, 191, 36, 0.5);"></span>
+                  <span class="text-[#94a3b8]">Wireframe edges show cluster boundaries</span>
+                </div>
+                <p class="text-[#64748b] mt-1">
+                  Detected by the Leiden algorithm — nodes within a community share more connections with each other than with outsiders.
                 </p>
               </div>
 
-              <div class="walkthrough-item">
-                <div class="walkthrough-label">Vectorized Nodes</div>
-                <p class="walkthrough-text">
-                  Each node represents an entity — a document, concept, or extracted fact — embedded into a <strong class="text-[#f1f5f9]">vector space</strong>. Proximity in the graph reflects semantic similarity from embeddings, enabling retrieval-augmented generation over structured knowledge rather than flat document chunks.
+            {:else if currentTourStep.content === 'legend'}
+              <div class="mt-1 space-y-2 text-[10px]">
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#94a3b8] shrink-0"></span>
+                    <span class="text-[#94a3b8]">Few connections</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-3.5 h-3.5 rounded-full bg-[#94a3b8] shrink-0"></span>
+                    <span class="text-[#94a3b8]">Many connections</span>
+                  </div>
+                </div>
+                <div class="space-y-1 text-[#94a3b8]">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#6366f1] shrink-0"></span>
+                    <span>Glow ring = additive blending shows entity presence</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#06b6d4] shrink-0"></span>
+                    <span>Color inherited from community membership</span>
+                  </div>
+                </div>
+              </div>
+
+            {:else if currentTourStep.content === 'edges'}
+              <div class="mt-1 space-y-2 text-[10px]">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-px bg-[#6366f1] shrink-0"></span>
+                  <span class="text-[#94a3b8] font-medium">Solid</span>
+                  <span class="text-[#64748b]">Intra-community</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-px border-t border-dashed border-[#94a3b8] shrink-0"></span>
+                  <span class="text-[#94a3b8] font-medium">Dashed</span>
+                  <span class="text-[#64748b]">Cross-community bridge</span>
+                </div>
+                <p class="text-[#64748b] mt-1">
+                  Bridge relationships are often the most revealing — they link separate knowledge domains that naive vector search would never connect.
                 </p>
               </div>
 
-              <div class="walkthrough-item">
-                <div class="walkthrough-label">Cross-Community Edges</div>
-                <p class="walkthrough-text">
-                  The dashed lines between clusters represent <strong class="text-[#f1f5f9]">inter-community relationships</strong> — the connections an NLP pipeline discovers through entity resolution, coreference, and relation extraction. These bridges are what make graph-based RAG more powerful than naive vector search alone.
-                </p>
+            {:else if currentTourStep.content === 'inference'}
+              <div class="mt-1 space-y-1 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#06b6d4] shrink-0"></span>
+                  <span class="text-[#94a3b8]">NLP entity extraction via on-prem LLMs</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#22d3ee] shrink-0"></span>
+                  <span class="text-[#94a3b8]">Embedding generation with ONNX edge models</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#a78bfa] shrink-0"></span>
+                  <span class="text-[#94a3b8]">Graph construction via Kafka-driven pipelines</span>
+                </div>
+                <div class="flex gap-1.5 mt-2">
+                  {#each ['vLLM', 'ONNX', 'Kafka', 'SurrealDB'] as tag}
+                    <span class="text-[9px] px-1.5 py-0.5 rounded" style="background: rgba(99, 102, 241, 0.12); color: #94a3b8;">{tag}</span>
+                  {/each}
+                </div>
               </div>
+            {/if}
 
-              <div class="walkthrough-item">
-                <div class="walkthrough-label">Edge Inference</div>
-                <p class="walkthrough-text">
-                  This runs locally. On-prem LLM inference with <strong class="text-[#f1f5f9]">vLLM</strong> and <strong class="text-[#f1f5f9]">ONNX edge models</strong> means entity extraction, embedding, and graph construction happen where the data lives — no cloud dependency, no data exfiltration, full autonomy.
-                </p>
-              </div>
+            <!-- Controls -->
+            <div class="flex items-center gap-2 mt-3">
+              {#if !isFirstStep}
+                <button
+                  onclick={prevStep}
+                  class="px-2.5 py-1 text-[11px] text-[#64748b] hover:text-[#94a3b8] transition-colors"
+                >Prev</button>
+              {/if}
+              <div class="flex-1"></div>
+              <button
+                onclick={closeTour}
+                class="px-2.5 py-1 text-[11px] text-[#475569] hover:text-[#94a3b8] transition-colors"
+              >Skip</button>
+              <button
+                onclick={nextStep}
+                class="px-3 py-1 text-[11px] rounded transition-colors"
+                style="background: rgba(99, 102, 241, 0.15); color: #e2e8f0;"
+              >{isLastStep ? 'Done' : 'Next'}</button>
             </div>
           </div>
         </div>
-      </div>
+      {/if}
     </div>
   </div>
 
@@ -654,42 +814,61 @@
     pointer-events: none;
   }
 
-  /* --- Walkthrough styles --- */
-  .walkthrough-heading {
-    background: linear-gradient(135deg, #6366f1, #06b6d4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* --- Tour tooltip (VIPR-style) --- */
+  .tour-tooltip {
+    position: absolute;
+    width: 22rem;
+    max-width: calc(100% - 2rem);
+    background: rgba(15, 15, 20, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
   }
 
-  .walkthrough-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #7c7ff4;
-    margin-bottom: 0.25rem;
+  .tour-pos-bottom-right {
+    bottom: 1.5rem;
+    right: 1.5rem;
   }
 
-  .walkthrough-text {
-    font-size: clamp(0.78rem, 0.85vw, 0.9rem);
-    color: #94a3b8;
-    line-height: 1.7;
-    font-weight: 300;
+  .tour-pos-bottom-left {
+    bottom: 1.5rem;
+    left: 1.5rem;
   }
 
-  .walkthrough-item {
-    padding-left: 0.75rem;
-    border-left: 2px solid rgba(99, 102, 241, 0.2);
+  .tour-pos-top-right {
+    top: 3.5rem;
+    right: 1.5rem;
   }
 
-  /* WCAG 2.3.3 — Disable bounce animation for reduced-motion users */
+  /* On small screens, center the tooltip at bottom */
+  @media (max-width: 640px) {
+    .tour-tooltip {
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      width: auto;
+    }
+    .tour-pos-bottom-right,
+    .tour-pos-bottom-left,
+    .tour-pos-top-right {
+      top: auto;
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+    }
+  }
+
+  /* WCAG 2.3.3 — Disable animations for reduced-motion users */
   @media (prefers-reduced-motion: reduce) {
     .scroll-hint {
       animation: none !important;
     }
-    .hero-panel {
+    .hero-panel,
+    .tour-tooltip {
       transition: none !important;
     }
   }
