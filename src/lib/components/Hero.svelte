@@ -7,11 +7,29 @@
   let tourActive = $state(false);
   let tourStep = $state(0);
 
+  // --- Graph controller (populated from Three.js closure) ---
+  interface GraphController {
+    // Camera: smoothly lerp to target position + zoom
+    focusCommunity: (index: number) => void;
+    focusOverview: () => void;
+    // Visual emphasis
+    highlightCommunities: (boost: boolean) => void;
+    highlightNodes: (boost: boolean) => void;
+    highlightSolidEdges: (boost: boolean) => void;
+    highlightDashedEdges: (boost: boolean) => void;
+    setRotationSpeed: (speed: number) => void;
+    resetAll: () => void;
+  }
+
+  let graphCtrl: GraphController | null = null;
+
   interface TourStepDef {
     title: string;
     description: string;
     content: 'text' | 'legend' | 'communities' | 'edges' | 'inference';
     position: 'bottom-right' | 'bottom-left' | 'top-right';
+    onEnter?: () => void;
+    onLeave?: () => void;
   }
 
   const tourSteps: TourStepDef[] = [
@@ -20,30 +38,67 @@
       description: 'This is a live community-oriented knowledge graph — the same architecture powering VIPR and Talon Black. Each element represents a concept from GraphRAG pipelines.',
       content: 'text',
       position: 'bottom-right',
+      onEnter: () => {
+        graphCtrl?.focusOverview();
+        graphCtrl?.setRotationSpeed(0.002);
+      },
+      onLeave: () => {
+        graphCtrl?.setRotationSpeed(0.0005);
+      },
     },
     {
       title: 'Community Detection',
       description: 'Colored clusters are communities — densely connected subgraphs discovered by algorithms like Leiden. In GraphRAG, communities partition a knowledge graph into coherent topic groups that can be summarized and queried independently.',
       content: 'communities',
       position: 'bottom-left',
+      onEnter: () => {
+        graphCtrl?.focusCommunity(0);
+        graphCtrl?.highlightCommunities(true);
+      },
+      onLeave: () => {
+        graphCtrl?.highlightCommunities(false);
+      },
     },
     {
       title: 'Vectorized Nodes',
       description: 'Each sphere is an entity — a document, concept, or extracted fact — embedded into a vector space. Proximity reflects semantic similarity from embeddings, enabling retrieval-augmented generation over structured knowledge rather than flat document chunks.',
       content: 'legend',
       position: 'bottom-right',
+      onEnter: () => {
+        graphCtrl?.focusCommunity(3);
+        graphCtrl?.highlightNodes(true);
+      },
+      onLeave: () => {
+        graphCtrl?.highlightNodes(false);
+      },
     },
     {
       title: 'Cross-Community Edges',
       description: 'Dashed lines are inter-community bridges — relationships an NLP pipeline discovers through entity resolution, coreference, and relation extraction. These connections are what make graph-based RAG more powerful than naive vector search alone.',
       content: 'edges',
       position: 'bottom-left',
+      onEnter: () => {
+        graphCtrl?.focusOverview();
+        graphCtrl?.highlightDashedEdges(true);
+        graphCtrl?.highlightSolidEdges(false);
+      },
+      onLeave: () => {
+        graphCtrl?.highlightDashedEdges(false);
+        graphCtrl?.highlightSolidEdges(false);
+      },
     },
     {
       title: 'Edge Inference',
       description: 'This all runs locally. On-prem LLM inference with vLLM and ONNX edge models means entity extraction, embedding, and graph construction happen where the data lives — no cloud dependency, no data exfiltration, full autonomy.',
       content: 'inference',
       position: 'bottom-right',
+      onEnter: () => {
+        graphCtrl?.focusOverview();
+        graphCtrl?.setRotationSpeed(0.003);
+      },
+      onLeave: () => {
+        graphCtrl?.setRotationSpeed(0.0005);
+      },
     },
   ];
 
@@ -51,23 +106,40 @@
   const isFirstStep = $derived(tourStep === 0);
   const isLastStep = $derived(tourStep === tourSteps.length - 1);
 
+  function applyStepActions(step: number) {
+    tourSteps[step].onEnter?.();
+  }
+
+  function leaveStepActions(step: number) {
+    tourSteps[step].onLeave?.();
+  }
+
   function startTour() {
     tourStep = 0;
     tourActive = true;
+    applyStepActions(0);
   }
 
   function closeTour() {
+    leaveStepActions(tourStep);
+    graphCtrl?.resetAll();
     tourActive = false;
     tourStep = 0;
   }
 
   function nextStep() {
-    if (isLastStep) closeTour();
-    else tourStep++;
+    if (isLastStep) { closeTour(); return; }
+    leaveStepActions(tourStep);
+    tourStep++;
+    applyStepActions(tourStep);
   }
 
   function prevStep() {
-    if (tourStep > 0) tourStep--;
+    if (tourStep > 0) {
+      leaveStepActions(tourStep);
+      tourStep--;
+      applyStepActions(tourStep);
+    }
   }
 
   function handleTourKeydown(e: KeyboardEvent) {
@@ -297,6 +369,72 @@
           let targetCX = 0, targetCY = 0;
           let lastSpawn = performance.now();
 
+          // --- Tour-driven camera & visual targets ---
+          let camTargetX = 0, camTargetY = 0, camTargetZ = 16;
+          let rotSpeed = 0.0005;
+          // Default opacities (restored on resetAll)
+          const DEFAULT_FILL_OPACITY = 0.035;
+          const DEFAULT_WIRE_OPACITY = 0.3;
+          const DEFAULT_SOLID_OPACITY = 0.4;
+          const DEFAULT_DASHED_OPACITY = 0.18;
+          let targetFillOpacity = DEFAULT_FILL_OPACITY;
+          let targetWireOpacity = DEFAULT_WIRE_OPACITY;
+          let targetSolidOpacity = DEFAULT_SOLID_OPACITY;
+          let targetDashedOpacity = DEFAULT_DASHED_OPACITY;
+          let targetNodeScale = 1.0;
+
+          graphCtrl = {
+            focusCommunity(index: number) {
+              const z = zones[index % zones.length];
+              camTargetX = z.center.x * 0.4;
+              camTargetY = z.center.y * 0.4;
+              camTargetZ = 10;
+            },
+            focusOverview() {
+              camTargetX = 0;
+              camTargetY = 0;
+              camTargetZ = 16;
+            },
+            highlightCommunities(boost: boolean) {
+              targetFillOpacity = boost ? 0.12 : DEFAULT_FILL_OPACITY;
+              targetWireOpacity = boost ? 0.7 : DEFAULT_WIRE_OPACITY;
+            },
+            highlightNodes(boost: boolean) {
+              targetNodeScale = boost ? 1.8 : 1.0;
+            },
+            highlightSolidEdges(boost: boolean) {
+              if (boost) {
+                targetSolidOpacity = 0.8;
+              } else {
+                // Only reset if not currently being driven by another step
+                targetSolidOpacity = DEFAULT_SOLID_OPACITY;
+              }
+            },
+            highlightDashedEdges(boost: boolean) {
+              if (boost) {
+                targetDashedOpacity = 0.6;
+                targetSolidOpacity = 0.1; // dim solid to emphasize dashed
+              } else {
+                targetDashedOpacity = DEFAULT_DASHED_OPACITY;
+                targetSolidOpacity = DEFAULT_SOLID_OPACITY;
+              }
+            },
+            setRotationSpeed(speed: number) {
+              rotSpeed = speed;
+            },
+            resetAll() {
+              camTargetX = 0;
+              camTargetY = 0;
+              camTargetZ = 16;
+              rotSpeed = 0.0005;
+              targetFillOpacity = DEFAULT_FILL_OPACITY;
+              targetWireOpacity = DEFAULT_WIRE_OPACITY;
+              targetSolidOpacity = DEFAULT_SOLID_OPACITY;
+              targetDashedOpacity = DEFAULT_DASHED_OPACITY;
+              targetNodeScale = 1.0;
+            },
+          };
+
           function onMouse(e: MouseEvent) {
             const rect = glassEl!.getBoundingClientRect();
             targetCX = ((e.clientX - rect.left) / rect.width  - 0.5) * 2;
@@ -423,11 +561,40 @@
               dashedLines.computeLineDistances();
             }
 
-            // Gentle rotation + mouse parallax
-            communityGroup.rotation.y += 0.0005;
+            // Lerp material opacities toward tour targets
+            const lerpRate = 0.04;
+            for (const z of zones) {
+              const fm = z.fillMesh.material as THREE.MeshBasicMaterial;
+              fm.opacity += (targetFillOpacity - fm.opacity) * lerpRate;
+              const wm = z.wireMesh.material as THREE.LineBasicMaterial;
+              wm.opacity += (targetWireOpacity - wm.opacity) * lerpRate;
+            }
+            solidMat.opacity += (targetSolidOpacity - solidMat.opacity) * lerpRate;
+            dashedMat.opacity += (targetDashedOpacity - dashedMat.opacity) * lerpRate;
+
+            // Lerp node scale toward target
+            for (const n of nodes) {
+              const target = n.baseRadius * targetNodeScale;
+              const cur = n.mesh.scale.x;
+              const next = cur + (target - cur) * lerpRate;
+              // Only apply scale boost if node is alive (not fading out)
+              const t = (now - n.born) / n.lifetime;
+              if (t < 0.85) {
+                n.mesh.scale.set(next, next, next);
+                n.glowMesh.scale.set(next * 2, next * 2, next * 2);
+              }
+            }
+
+            // Gentle rotation + camera control
+            communityGroup.rotation.y += rotSpeed;
             nodeGroup.rotation.y = communityGroup.rotation.y;
-            camera.position.x += (targetCX - camera.position.x) * 0.025;
-            camera.position.y += (targetCY - camera.position.y) * 0.025;
+
+            // Camera: lerp toward tour target, then apply mouse parallax on top
+            camera.position.z += (camTargetZ - camera.position.z) * 0.03;
+            const baseCamX = camTargetX + (tourActive ? 0 : targetCX);
+            const baseCamY = camTargetY + (tourActive ? 0 : targetCY);
+            camera.position.x += (baseCamX - camera.position.x) * 0.03;
+            camera.position.y += (baseCamY - camera.position.y) * 0.03;
             renderer.render(scene, camera);
           });
 
