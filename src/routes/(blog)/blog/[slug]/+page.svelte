@@ -136,11 +136,14 @@
     <!-- Header -->
     <header class="mb-10">
       {#if post.coverImage}
-        <img
-          src={post.coverImage}
-          alt=""
-          class="w-full aspect-video object-cover rounded-xl mb-8 border border-[rgba(99,102,241,0.15)]"
-        />
+        <div class="relative overflow-hidden rounded-xl mb-8 border border-[rgba(99,102,241,0.15)]">
+          <img
+            src={post.coverImage}
+            alt=""
+            class="w-full aspect-video object-cover"
+          />
+          <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse at 35% 45%, rgba(99,102,241,0.07) 0%, transparent 65%);"></div>
+        </div>
       {/if}
 
       <h1

@@ -39,12 +39,15 @@
               onmouseleave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-border)'; }}
             >
               {#if post.coverImage}
-                <img
-                  src={post.coverImage}
-                  alt=""
-                  class="w-full aspect-video object-cover rounded-t-xl"
-                  loading="lazy"
-                />
+                <div class="relative overflow-hidden rounded-t-xl">
+                  <img
+                    src={post.coverImage}
+                    alt=""
+                    class="w-full aspect-video object-cover"
+                    loading="lazy"
+                  />
+                  <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse at 40% 50%, rgba(99,102,241,0.08) 0%, transparent 70%);"></div>
+                </div>
               {:else}
                 <div class="w-full aspect-video rounded-t-xl" style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1));"></div>
               {/if}
