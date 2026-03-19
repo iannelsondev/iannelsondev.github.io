@@ -211,9 +211,9 @@ export const experience: ExperienceEntry[] = [
   },
   {
     avatar: 'US',
-    companyUrl: 'https://www.army.mil',
+    companyUrl: 'https://www.inscom.army.mil/MSC/500MIB/index.html',
     role: 'Signals Intelligence Analyst',
-    company: 'U.S. Army / NSA Hawaii',
+    company: 'U.S. Army — 500th MI BDE',
     companyDesc: 'NSA/CSS Hawaii — signals intelligence collection and analysis supporting national and theater intelligence requirements in the Pacific.',
     dates: '2002 – 2007',
     location: 'Schofield Barracks, Hawaii (500th MI BDE)',
