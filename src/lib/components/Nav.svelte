@@ -2,27 +2,26 @@
   import { onMount } from 'svelte';
 
   const navLinks = [
-    { href: '#home', label: 'Home', num: '00' },
-    { href: '#about', label: 'About', num: '01' },
-    { href: '#experience', label: 'Experience', num: '02' },
-    { href: '#skills', label: 'Skills', num: '03' },
-    { href: '#projects', label: 'Projects', num: '04' },
-    { href: '#education', label: 'Education', num: '05' },
-    { href: '#blog', label: 'Blog', num: '06' }
+    { href: '#home', label: 'Home', num: '00', index: 1 },
+    { href: '#about', label: 'About', num: '01', index: 2 },
+    { href: '#experience', label: 'Experience', num: '02', index: 3 },
+    { href: '#skills', label: 'Skills', num: '03', index: 4 },
+    { href: '#projects', label: 'Projects', num: '04', index: 5 },
+    { href: '#education', label: 'Education', num: '05', index: 6 },
+    { href: '#blog', label: 'Community', num: '06', index: 7 }
   ];
 
   let activeSection = $state('home');
   let mobileOpen = $state(false);
 
-  function handleNavClick(e: MouseEvent | KeyboardEvent, href: string) {
+  function handleNavClick(e: MouseEvent | KeyboardEvent, href: string, sectionIndex: number) {
     if (e.type === 'keydown' && (e as KeyboardEvent).key !== 'Enter' && (e as KeyboardEvent).key !== ' ') return;
     e.preventDefault();
-    const anchor = href.replace('#', '');
-    // Use fullPage.js API if available
     // @ts-ignore
     if (window.fullpage_api) {
+      // Use numeric index — avoids anchor name conflicts with slides
       // @ts-ignore
-      window.fullpage_api.moveTo(anchor);
+      window.fullpage_api.moveTo(sectionIndex, 0);
     }
     mobileOpen = false;
   }
@@ -94,8 +93,8 @@
           href={link.href}
           class="flex items-center font-mono tracking-wider uppercase transition-[color,background-color,border-color] duration-200 group nav-link
             border-l-2 {activeSection === link.href.replace('#', '') ? 'border-[#6366f1] text-[#f1f5f9] bg-[rgba(99,102,241,0.08)]' : 'border-transparent text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[rgba(99,102,241,0.05)]'}"
-          onclick={(e) => handleNavClick(e, link.href)}
-          onkeydown={(e) => handleNavClick(e, link.href)}
+          onclick={(e) => handleNavClick(e, link.href, link.index)}
+          onkeydown={(e) => handleNavClick(e, link.href, link.index)}
         >
           <span class="text-[#6366f1] opacity-50 nav-num">{link.num}</span>
           {link.label}
