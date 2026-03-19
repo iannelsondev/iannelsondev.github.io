@@ -4,6 +4,15 @@
   import type { BlogSection } from '$lib/blog/types';
   import type { Component } from 'svelte';
 
+  // Eagerly import all post components at build time — keys are file paths
+  const postModules = import.meta.glob('/src/lib/blog/posts/*/Post.svelte', { eager: true }) as Record<string, { default: Component }>;
+
+  // Build slug → component map
+  function getPostComponent(slug: string): Component | undefined {
+    const key = `/src/lib/blog/posts/${slug}/Post.svelte`;
+    return postModules[key]?.default;
+  }
+
   interface PostData {
     slug: string;
     title: string;
@@ -18,11 +27,12 @@
   interface Props {
     data: {
       post: PostData;
-      PostComponent: Component;
     };
   }
 
   let { data }: Props = $props();
+
+  const PostComponent = $derived(getPostComponent(data.post.slug));
 
   let scrollProgress = $state(0);
 
@@ -149,8 +159,8 @@
 
   <!-- Post content -->
   <div class="prose-blog">
-    {#if data.PostComponent}
-      <data.PostComponent />
+    {#if PostComponent}
+      <PostComponent />
     {/if}
   </div>
 
