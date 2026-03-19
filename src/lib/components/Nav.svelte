@@ -26,6 +26,7 @@
   }
 
   onMount(() => {
+    const container = document.querySelector('.snap-container');
     const sections = document.querySelectorAll<HTMLElement>('section[id]');
 
     const obs = new IntersectionObserver((entries) => {
@@ -34,7 +35,11 @@
           activeSection = entry.target.id;
         }
       }
-    }, { threshold: 0.3, rootMargin: '-10% 0px -60% 0px' });
+    }, {
+      root: container,
+      threshold: 0.3,
+      rootMargin: '-10% 0px -60% 0px'
+    });
 
     sections.forEach(sec => obs.observe(sec));
     return () => obs.disconnect();

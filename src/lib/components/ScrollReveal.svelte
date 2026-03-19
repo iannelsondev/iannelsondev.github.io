@@ -16,12 +16,13 @@
   onMount(() => {
     visible = false;
     mounted = true;
+    const container = document.querySelector('.snap-container');
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) {
         visible = true;
         obs.disconnect();
       }
-    }, { threshold: 0.05, rootMargin: '50px' });
+    }, { root: container, threshold: 0.05, rootMargin: '50px' });
     obs.observe(el);
     return () => obs.disconnect();
   });

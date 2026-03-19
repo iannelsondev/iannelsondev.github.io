@@ -22,7 +22,7 @@
 <Nav />
 
 <!-- Main content, offset for sidebar on md+ -->
-<div class="relative z-10 main-content">
+<div class="relative z-10 main-content snap-container">
   {@render children()}
 </div>
 
@@ -31,5 +31,27 @@
     .main-content {
       margin-left: clamp(180px, 14vw, 260px);
     }
+  }
+
+  .snap-container {
+    height: 100vh;
+    overflow-y: auto;
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+  }
+
+  .snap-container :global(section) {
+    scroll-snap-align: start;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Experience is long — let it flow naturally but still snap at the top */
+  .snap-container :global(#experience) {
+    min-height: auto;
+    justify-content: flex-start;
+    padding-top: 5vh;
   }
 </style>
