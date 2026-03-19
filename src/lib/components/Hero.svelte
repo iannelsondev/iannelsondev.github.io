@@ -46,7 +46,7 @@
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
-        camera.position.z = 12;
+        camera.position.z = 8;
 
         // Shared geometry
         const sphereGeo = new THREE.SphereGeometry(1, 12, 12);
@@ -62,7 +62,7 @@
         const edgeGeo = new THREE.BufferGeometry();
         edgeGeo.setAttribute('position', new THREE.BufferAttribute(edgeArr, 3));
         edgeGeo.setDrawRange(0, 0);
-        const edgeMat = new THREE.LineBasicMaterial({ color: INDIGO, transparent: true, opacity: 0.3 });
+        const edgeMat = new THREE.LineBasicMaterial({ color: INDIGO, transparent: true, opacity: 0.5 });
         scene.add(new THREE.LineSegments(edgeGeo, edgeMat));
 
         const nodeGroup = new THREE.Group();
@@ -83,16 +83,16 @@
         const SPREAD = 8;
 
         function spawn(scatter = false): Node {
-          const r = 0.12 + Math.random() * 0.28;
+          const r = 0.2 + Math.random() * 0.45;
           const c = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-          const mat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85 });
+          const mat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 1.0 });
           const mesh = new THREE.Mesh(sphereGeo, mat);
           mesh.scale.setScalar(r);
 
-          const glowMat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.15, side: THREE.BackSide });
+          const glowMat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.3, side: THREE.BackSide });
           const glow = new THREE.Mesh(sphereGeo, glowMat);
-          glow.scale.setScalar(r * 4);
+          glow.scale.setScalar(r * 5);
           mesh.add(glow);
 
           let x: number, y: number, z: number;
@@ -170,8 +170,8 @@
             const n = nodes[i];
             const t = (now - n.born) / n.lifetime;
             const fade = t > 0.85 ? 1 - (t - 0.85) / 0.15 : 1;
-            (n.mesh.material as THREE.MeshBasicMaterial).opacity = fade * 0.85;
-            (n.glow.material as THREE.MeshBasicMaterial).opacity = fade * 0.15;
+            (n.mesh.material as THREE.MeshBasicMaterial).opacity = fade * 1.0;
+            (n.glow.material as THREE.MeshBasicMaterial).opacity = fade * 0.3;
             n.mesh.scale.setScalar(n.r * (t > 0.85 ? fade : 1));
 
             if (t >= 1) {
@@ -259,9 +259,14 @@
   <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
     <div bind:this={glassEl} class="hero-glass relative w-full max-w-4xl rounded-2xl overflow-hidden">
 
-      <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 0;" aria-hidden="true"></canvas>
+      <!-- Dark opaque background layer — blocks hex grid -->
+      <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.9); z-index: 0;"></div>
 
-      <div class="relative z-10 flex flex-col items-center justify-center text-center px-6 sm:px-10 md:px-16 py-14 md:py-20">
+      <!-- Three.js canvas — renders glowing nodes on transparent background above the dark layer -->
+      <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 1;" aria-hidden="true"></canvas>
+
+      <!-- Text content on top of everything -->
+      <div class="hero-content relative flex flex-col items-center justify-center text-center px-6 sm:px-10 md:px-16 py-14 md:py-20" style="z-index: 2;">
 
         <h1 class="hero-name leading-[0.9] mb-5">
           <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
@@ -292,14 +297,12 @@
 
 <style>
   .hero-glass {
-    background: rgba(10, 10, 16, 0.5);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(99, 102, 241, 0.12);
+    background: transparent;
+    border: 1px solid rgba(99, 102, 241, 0.15);
     box-shadow:
-      0 0 80px rgba(99, 102, 241, 0.05),
-      0 30px 80px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      0 0 80px rgba(99, 102, 241, 0.06),
+      0 30px 80px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .hero-name {
