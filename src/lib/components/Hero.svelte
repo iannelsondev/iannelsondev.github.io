@@ -851,7 +851,7 @@
 -->
 <section class="relative h-full w-full overflow-hidden" aria-label="Introduction">
   <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
-    <div bind:this={glassEl} class="hero-glass relative w-full max-w-4xl rounded-2xl overflow-hidden">
+    <div bind:this={glassEl} class="hero-glass relative w-full rounded-2xl overflow-hidden {tourActive ? 'hero-glass-expanded' : 'hero-glass-default'}">
 
       <!-- Dark opaque background layer -->
       <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.92); z-index: 0;"></div>
@@ -1364,6 +1364,16 @@
       0 0 80px rgba(99, 102, 241, 0.06),
       0 30px 80px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hero-glass-default {
+    max-width: 56rem; /* max-w-4xl */
+  }
+
+  .hero-glass-expanded {
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
   }
 
   .hero-text-glass {
@@ -1650,6 +1660,7 @@
     .scroll-hint {
       animation: none !important;
     }
+    .hero-glass,
     .hero-panel,
     .tour-tooltip,
     .tour-detail {
