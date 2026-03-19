@@ -10,7 +10,7 @@
 <h2 id="the-io-problem">The I/O Problem</h2>
 
 <p>
-  Twenty-six years in the Intelligence Community. A career built on turning noise into signal, regardless of where it came from. The skill that mattered most wasn't analysis, wasn't leadership, wasn't clearances — it was <strong>bandwidth</strong>. The ability to consume massive volumes of information at speed, find the signal, and act on it. Saturation, density, speed. That was the I/O.
+  Twenty-six years in the Intelligence Community, or something like it. A career built on turning noise into signal, regardless of where it came from. The skill that mattered most wasn't analysis, wasn't leadership, wasn't clearances — it was <strong>bandwidth</strong>. Consuming massive volumes of information at speed, finding what mattered, and acting on it. Saturation, density, speed. That was the I/O.
 </p>
 
 <p>
