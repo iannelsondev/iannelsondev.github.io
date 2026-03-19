@@ -9,13 +9,13 @@
   import Footer from '$lib/components/Footer.svelte';
 </script>
 
-<div class="section" data-anchor="home"><Hero /></div>
-<div class="section" data-anchor="about"><About /></div>
-<div class="section" data-anchor="experience"><Experience /></div>
-<div class="section" data-anchor="skills"><Skills /></div>
-<div class="section" data-anchor="projects"><Projects /></div>
-<div class="section" data-anchor="education"><Education /></div>
-<div class="section" data-anchor="blog">
+<div class="section fp-auto-height-responsive"><Hero /></div>
+<div class="section"><About /></div>
+<div class="section"><Experience /></div>
+<div class="section"><Skills /></div>
+<div class="section"><Projects /></div>
+<div class="section"><Education /></div>
+<div class="section fp-auto-height">
   <Blog />
   <Footer />
 </div>

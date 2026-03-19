@@ -16,21 +16,22 @@
     // @ts-ignore
     await import('fullpage.js/dist/fullpage.css');
 
+    const sectionAnchors = ['home', 'about', 'experience', 'skills', 'projects', 'education', 'blog'];
+
     new fullpage.default('#fullpage', {
       licenseKey: 'gplv3-license',
       autoScrolling: true,
       scrollOverflow: true,
       scrollingSpeed: 700,
       fitToSection: true,
-      anchors: ['home', 'about', 'experience', 'skills', 'projects', 'education', 'blog'],
-      menu: '#fp-nav',
       css3: true,
       easing: 'easeInOutCubic',
       navigation: false,
-      onLeave: (_origin: any, destination: any) => {
-        // Dispatch custom event for Nav scrollspy
+      normalScrollElements: '',
+      afterLoad: (_origin: any, destination: any) => {
+        const anchor = sectionAnchors[destination.index] || '';
         window.dispatchEvent(new CustomEvent('fp-section-change', {
-          detail: { index: destination.index, anchor: destination.anchor }
+          detail: { index: destination.index, anchor }
         }));
       }
     });
