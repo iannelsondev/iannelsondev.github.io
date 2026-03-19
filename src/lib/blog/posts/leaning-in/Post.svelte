@@ -1,0 +1,100 @@
+<script lang="ts">
+  // "Leaning In" — first blog post
+  // Content reviewed before deploy. This is the draft structure.
+</script>
+
+<blockquote>
+  My father gave me a fabulous piece of advice once that I thought I understood, until I <em>really</em> needed to understand it: <strong>necessity leads to innovation</strong>. Boy was he right.
+</blockquote>
+
+<h2 id="the-io-problem">The I/O Problem</h2>
+
+<p>
+  Twenty-six years in the Intelligence Community. The skill that mattered most wasn't analysis, wasn't leadership, wasn't clearances — it was <strong>bandwidth</strong>. The ability to consume massive volumes of information at speed, find the signal, and act on it. Saturation, density, speed. That was the I/O.
+</p>
+
+<p>
+  Adult-onset Type II diabetes. Genetic. Treating it, doing well. Two days before my 40th birthday: a massive hemorrhage in my left eye. Then another. Two surgeries on the left — functional, usable. Full retinal detachment in the right — gone.
+</p>
+
+<p>
+  The career skill — the I/O — was now bottlenecked at the hardware level.
+</p>
+
+<p>
+  Hard to come to terms with. I'm a proud person. Veteran, accomplished, built things that mattered. But eventually the self-pity runs out and you're left with a choice: keep mourning what was, or treat it like what it is — another problem to solve.
+</p>
+
+<h2 id="the-overhaul">The Overhaul</h2>
+
+<p>
+  Everything changed. Four Dell 32-inch 4K monitors running HiDPI scaling, plus a 55-inch Samsung center display at 4K60. Two Stream Decks for quick-launch workflows. Fonts cranked. Contrast cranked. Dark mode everywhere. Every tool re-evaluated against one question: <em>can I actually use this?</em>
+</p>
+
+<p>
+  But the physical setup only solved part of the problem. The real issue wasn't the pixels on the screen — it was the <strong>volume</strong>. Email across a half-dozen channels. Calendars. Tasks. Messages. News feeds. The daily flood of information that used to be manageable by reading fast wasn't manageable anymore. It was just too much. Just too hard.
+</p>
+
+<h2 id="leaning-in">Leaning In</h2>
+
+<p>
+  The realization wasn't one moment. It was a slow understanding that AI wasn't a tech interest, wasn't a career pivot, wasn't a thing I was doing because it was trendy. It was <strong>the only way to stay functional</strong>.
+</p>
+
+<p>
+  But also: the problems I was solving for myself mapped directly to what enterprises needed. Information overload isn't a disability problem — it's an <em>everyone</em> problem. And depending on cloud services for something this critical was unacceptable. It had to run locally, on my terms, on my hardware.
+</p>
+
+<p>
+  The decision: stop fighting the limitation. Reframe it as an engineering problem. Lean all the way in.
+</p>
+
+<h2 id="building-the-stack">Building the Stack</h2>
+
+<p>
+  <strong>ATLAS</strong> — Aggregated Task, Log, and Alert System. Built to manage the daily flood across 11 channels: email, calendar, tasks, contacts, shopping, finances, documents, and more. Deterministic intelligence — Eisenhower prioritization, email classification, relationship scoring — so the system surfaces what matters without me reading everything. The architecture post is coming. For now: it works, it's local, and it changed everything.
+</p>
+
+<p>
+  <strong>PAPERBOY</strong> — 50,000 articles per day from 10,000+ RSS feeds, filtered down to 500 through a multi-stage triage pipeline. Ticker view for breaking, regional view for geopolitics — different interfaces for different information density challenges. Same I/O problem, different domain.
+</p>
+
+<p>
+  <strong>The phone</strong> — a Pixel with a custom launcher, edge model running on-device, ATLAS mobile. The unified system works when I'm not at the desk. Because the problem doesn't stop when I leave the office.
+</p>
+
+<h2 id="the-snowball">The Snowball</h2>
+
+<p>
+  It started with specs. Architectural specifications, written in detail, implemented by AI agents. Spec-driven development — the CTO and architect role stays human, the I/O bottleneck is bypassed. The first round of specs and agents wasn't sufficient. So I wrote tasks for agents with skills, hooks, custom tooling. Evolved.
+</p>
+
+<p>
+  Migrated to multi-frontier-provider orchestration. Then, for security, evolved to on-prem inference. Every day is faster than the one before it. The toolchain itself is accelerating. Each thing built makes the next thing faster to build.
+</p>
+
+<p>
+  This isn't a productivity hack. It's compound interest on capability.
+</p>
+
+<h2 id="the-takeaway">The Takeaway</h2>
+
+<p>
+  Three threads woven together:
+</p>
+
+<p>
+  <strong>AI is an equalizer.</strong> For people with disabilities, AI isn't hype — it's the most important accessibility tool ever built. Screen readers were step one. LLMs that can summarize, triage, and act on information without you having to read it? That's the real revolution.
+</p>
+
+<p>
+  <strong>Build what you need.</strong> When the tools don't exist, you build them. Sometimes that becomes the mission. ATLAS started as a coping mechanism. Now it's an enterprise-grade platform.
+</p>
+
+<p>
+  <strong>The future is autonomous.</strong> What I learned building for myself is what the world needs — autonomous, local, intelligent systems that don't depend on someone else's cloud, someone else's uptime, someone else's priorities.
+</p>
+
+<p>
+  I could have slowly gone insane, or I could have adapted. It's clear which route I chose.
+</p>

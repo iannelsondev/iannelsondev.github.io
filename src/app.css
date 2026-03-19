@@ -27,10 +27,6 @@
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html {
-  overflow: hidden; /* fullPage.js handles scrolling */
-}
-
 body {
   background: var(--bg);
   color: var(--text);
