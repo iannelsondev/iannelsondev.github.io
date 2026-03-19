@@ -4,6 +4,7 @@
   let canvasEl = $state<HTMLCanvasElement | null>(null);
   let glassEl = $state<HTMLDivElement | null>(null);
   let webglReady = $state(false);
+  let showWalkthrough = $state(false);
 
   onMount(() => {
     if (!canvasEl || !glassEl) return;
@@ -415,8 +416,20 @@
       -->
       <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 1;" aria-hidden="true"></canvas>
 
+      <!-- Info toggle — only visible when WebGL graph is rendering -->
+      {#if webglReady}
+        <button
+          class="info-toggle"
+          onclick={() => showWalkthrough = !showWalkthrough}
+          aria-label={showWalkthrough ? 'Close graph explanation' : 'What is this graph?'}
+          aria-expanded={showWalkthrough}
+        >
+          <span class="info-toggle-icon">{showWalkthrough ? '✕' : '?'}</span>
+        </button>
+      {/if}
+
       <!-- Text content — in flow so the glass panel gets intrinsic height -->
-      <div class="relative flex items-center justify-center" style="z-index: 2;">
+      <div class="relative flex items-center justify-center hero-panel {showWalkthrough ? 'hero-panel-hidden' : 'hero-panel-visible'}" style="z-index: 2;">
         <div class="{webglReady ? 'hero-text-glass' : ''} rounded-xl px-8 sm:px-12 md:px-16 py-14 md:py-20 max-w-2xl w-full mx-4">
           <div class="flex flex-col items-center text-center">
             <!--
@@ -462,6 +475,45 @@
                 aria-label="GitHub profile (opens in new tab)"
               >GitHub</a>
               <a href="mailto:iannelsondev@proton.me" class="hero-btn" aria-label="Send email to iannelsondev@proton.me">iannelsondev@proton.me</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graph walkthrough overlay -->
+      <div class="absolute inset-0 flex items-center justify-center hero-panel {showWalkthrough ? 'hero-panel-visible' : 'hero-panel-hidden'}" style="z-index: {showWalkthrough ? 2 : -1};" aria-hidden={!showWalkthrough}>
+        <div class="hero-text-glass rounded-xl px-8 sm:px-12 md:px-16 py-10 md:py-14 max-w-2xl w-full mx-4">
+          <div class="flex flex-col gap-6">
+            <h2 class="font-mono uppercase tracking-[0.25em] text-[0.7rem] walkthrough-heading">What You're Seeing</h2>
+
+            <div class="flex flex-col gap-5">
+              <div class="walkthrough-item">
+                <div class="walkthrough-label">Community Detection</div>
+                <p class="walkthrough-text">
+                  Each colored cluster is a <strong class="text-[#f1f5f9]">community</strong> — a densely connected subgraph discovered by algorithms like Louvain or Leiden. In GraphRAG, communities partition a knowledge graph into coherent topic groups that can be summarized and queried independently.
+                </p>
+              </div>
+
+              <div class="walkthrough-item">
+                <div class="walkthrough-label">Vectorized Nodes</div>
+                <p class="walkthrough-text">
+                  Each node represents an entity — a document, concept, or extracted fact — embedded into a <strong class="text-[#f1f5f9]">vector space</strong>. Proximity in the graph reflects semantic similarity from embeddings, enabling retrieval-augmented generation over structured knowledge rather than flat document chunks.
+                </p>
+              </div>
+
+              <div class="walkthrough-item">
+                <div class="walkthrough-label">Cross-Community Edges</div>
+                <p class="walkthrough-text">
+                  The dashed lines between clusters represent <strong class="text-[#f1f5f9]">inter-community relationships</strong> — the connections an NLP pipeline discovers through entity resolution, coreference, and relation extraction. These bridges are what make graph-based RAG more powerful than naive vector search alone.
+                </p>
+              </div>
+
+              <div class="walkthrough-item">
+                <div class="walkthrough-label">Edge Inference</div>
+                <p class="walkthrough-text">
+                  This runs locally. On-prem LLM inference with <strong class="text-[#f1f5f9]">vLLM</strong> and <strong class="text-[#f1f5f9]">ONNX edge models</strong> means entity extraction, embedding, and graph construction happen where the data lives — no cloud dependency, no data exfiltration, full autonomy.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -547,10 +599,98 @@
     outline-offset: 4px;
   }
 
+  /* --- Info toggle button --- */
+  .info-toggle {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(10, 10, 16, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  .info-toggle:hover {
+    border-color: rgba(99, 102, 241, 0.6);
+    background: rgba(99, 102, 241, 0.15);
+  }
+
+  .info-toggle:focus-visible {
+    outline: 2px solid #7c7ff4;
+    outline-offset: 3px;
+  }
+
+  .info-toggle-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    line-height: 1;
+  }
+
+  /* --- Panel transitions --- */
+  .hero-panel {
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hero-panel-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .hero-panel-hidden {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+  }
+
+  /* --- Walkthrough styles --- */
+  .walkthrough-heading {
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .walkthrough-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7c7ff4;
+    margin-bottom: 0.25rem;
+  }
+
+  .walkthrough-text {
+    font-size: clamp(0.78rem, 0.85vw, 0.9rem);
+    color: #94a3b8;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .walkthrough-item {
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(99, 102, 241, 0.2);
+  }
+
   /* WCAG 2.3.3 — Disable bounce animation for reduced-motion users */
   @media (prefers-reduced-motion: reduce) {
     .scroll-hint {
       animation: none !important;
+    }
+    .hero-panel {
+      transition: none !important;
     }
   }
 </style>
