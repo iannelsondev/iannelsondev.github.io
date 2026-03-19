@@ -9,15 +9,16 @@
 
   // --- Graph controller (populated from Three.js closure) ---
   interface GraphController {
-    // Camera: smoothly lerp to target position + zoom
     focusCommunity: (index: number) => void;
     focusOverview: () => void;
-    // Visual emphasis
     highlightCommunities: (boost: boolean) => void;
     highlightNodes: (boost: boolean) => void;
     highlightSolidEdges: (boost: boolean) => void;
     highlightDashedEdges: (boost: boolean) => void;
     setRotationSpeed: (speed: number) => void;
+    spotlightNode: (communityIndex: number) => void;
+    clearSpotlight: () => void;
+    getStats: () => { nodes: number; edges: number; communities: number; crossEdges: number };
     resetAll: () => void;
   }
 
@@ -32,6 +33,12 @@
     onLeave?: () => void;
   }
 
+  // Mock embedding vector for the node detail card
+  const MOCK_EMBEDDING = [0.0234, -0.1892, 0.4521, 0.0087, -0.3341, 0.2156, -0.0743, 0.5102, -0.2891, 0.1234, -0.4012, 0.0891, 0.3367, -0.1558, 0.2003, -0.0421];
+
+  // Live stats updated on tour start
+  let tourStats = $state({ nodes: 0, edges: 0, communities: 0, crossEdges: 0 });
+
   const tourSteps: TourStepDef[] = [
     {
       title: 'Knowledge Graph',
@@ -41,6 +48,7 @@
       onEnter: () => {
         graphCtrl?.focusOverview();
         graphCtrl?.setRotationSpeed(0.002);
+        if (graphCtrl) tourStats = graphCtrl.getStats();
       },
       onLeave: () => {
         graphCtrl?.setRotationSpeed(0.0005);
@@ -67,9 +75,11 @@
       onEnter: () => {
         graphCtrl?.focusCommunity(3);
         graphCtrl?.highlightNodes(true);
+        graphCtrl?.spotlightNode(3);
       },
       onLeave: () => {
         graphCtrl?.highlightNodes(false);
+        graphCtrl?.clearSpotlight();
       },
     },
     {
@@ -372,7 +382,6 @@
           // --- Tour-driven camera & visual targets ---
           let camTargetX = 0, camTargetY = 0, camTargetZ = 16;
           let rotSpeed = 0.0005;
-          // Default opacities (restored on resetAll)
           const DEFAULT_FILL_OPACITY = 0.035;
           const DEFAULT_WIRE_OPACITY = 0.3;
           const DEFAULT_SOLID_OPACITY = 0.4;
@@ -382,6 +391,14 @@
           let targetSolidOpacity = DEFAULT_SOLID_OPACITY;
           let targetDashedOpacity = DEFAULT_DASHED_OPACITY;
           let targetNodeScale = 1.0;
+
+          // Spotlight: pulse a single node
+          let spotlightNodeRef: Node | null = null;
+          let spotlightPulsePhase = 0;
+
+          // Edge counting for live stats
+          let lastSolidCount = 0;
+          let lastDashedCount = 0;
 
           graphCtrl = {
             focusCommunity(index: number) {
@@ -403,17 +420,12 @@
               targetNodeScale = boost ? 1.8 : 1.0;
             },
             highlightSolidEdges(boost: boolean) {
-              if (boost) {
-                targetSolidOpacity = 0.8;
-              } else {
-                // Only reset if not currently being driven by another step
-                targetSolidOpacity = DEFAULT_SOLID_OPACITY;
-              }
+              targetSolidOpacity = boost ? 0.8 : DEFAULT_SOLID_OPACITY;
             },
             highlightDashedEdges(boost: boolean) {
               if (boost) {
                 targetDashedOpacity = 0.6;
-                targetSolidOpacity = 0.1; // dim solid to emphasize dashed
+                targetSolidOpacity = 0.1;
               } else {
                 targetDashedOpacity = DEFAULT_DASHED_OPACITY;
                 targetSolidOpacity = DEFAULT_SOLID_OPACITY;
@@ -421,6 +433,28 @@
             },
             setRotationSpeed(speed: number) {
               rotSpeed = speed;
+            },
+            spotlightNode(communityIndex: number) {
+              // Find the largest node in the target community
+              let best: Node | null = null;
+              for (const n of nodes) {
+                if (n.community === communityIndex) {
+                  if (!best || n.baseRadius > best.baseRadius) best = n;
+                }
+              }
+              spotlightNodeRef = best;
+              spotlightPulsePhase = 0;
+            },
+            clearSpotlight() {
+              spotlightNodeRef = null;
+            },
+            getStats() {
+              return {
+                nodes: nodes.length,
+                edges: lastSolidCount + lastDashedCount,
+                communities: NUM_COMMUNITIES,
+                crossEdges: lastDashedCount,
+              };
             },
             resetAll() {
               camTargetX = 0;
@@ -432,6 +466,7 @@
               targetSolidOpacity = DEFAULT_SOLID_OPACITY;
               targetDashedOpacity = DEFAULT_DASHED_OPACITY;
               targetNodeScale = 1.0;
+              spotlightNodeRef = null;
             },
           };
 
@@ -559,6 +594,9 @@
               (dashedGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
               dashedGeo.setDrawRange(0, dc * 2);
               dashedLines.computeLineDistances();
+
+              lastSolidCount = sc;
+              lastDashedCount = dc;
             }
 
             // Lerp material opacities toward tour targets
@@ -572,16 +610,22 @@
             solidMat.opacity += (targetSolidOpacity - solidMat.opacity) * lerpRate;
             dashedMat.opacity += (targetDashedOpacity - dashedMat.opacity) * lerpRate;
 
-            // Lerp node scale toward target
+            // Lerp node scale toward target + spotlight pulse
+            spotlightPulsePhase += 0.05;
             for (const n of nodes) {
-              const target = n.baseRadius * targetNodeScale;
+              const isSpotlit = spotlightNodeRef === n;
+              const pulseScale = isSpotlit ? 3.0 + Math.sin(spotlightPulsePhase) * 0.8 : targetNodeScale;
+              const target = n.baseRadius * pulseScale;
               const cur = n.mesh.scale.x;
-              const next = cur + (target - cur) * lerpRate;
-              // Only apply scale boost if node is alive (not fading out)
+              const next = cur + (target - cur) * (isSpotlit ? 0.08 : lerpRate);
               const t = (now - n.born) / n.lifetime;
               if (t < 0.85) {
                 n.mesh.scale.set(next, next, next);
                 n.glowMesh.scale.set(next * 2, next * 2, next * 2);
+              }
+              // Boost spotlight glow
+              if (isSpotlit) {
+                n.glowMat.opacity = 0.8 + Math.sin(spotlightPulsePhase) * 0.2;
               }
             }
 
@@ -719,6 +763,195 @@
             tabindex="-1"
             aria-label="Close tour"
           ></button>
+
+          <!-- Detail card — positioned opposite the tooltip -->
+          {#if tourStep === 0}
+            <!-- Graph stats -->
+            <div class="tour-detail tour-detail-top-left">
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Live Graph</div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Nodes</div>
+                  <div class="detail-stat-value">{tourStats.nodes}</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Edges</div>
+                  <div class="detail-stat-value">{tourStats.edges}</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Communities</div>
+                  <div class="detail-stat-value">{tourStats.communities}</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Cross-links</div>
+                  <div class="detail-stat-value">{tourStats.crossEdges}</div>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-1 mt-2">
+                {#each ['Leiden', 'Force-directed', 'Additive blend'] as tag}
+                  <span class="detail-tag">{tag}</span>
+                {/each}
+              </div>
+            </div>
+          {:else if tourStep === 1}
+            <!-- Community detail card -->
+            <div class="tour-detail tour-detail-top-right">
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Community 0</div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-3 h-3 rounded-sm shrink-0" style="background: rgba(96, 165, 250, 0.3); border: 1px solid rgba(96, 165, 250, 0.6);"></span>
+                <span class="text-xs text-[#e2e8f0]">Geopolitical Entities</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 mb-2">
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Members</div>
+                  <div class="detail-stat-value">14</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Density</div>
+                  <div class="detail-stat-value">0.72</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Modularity</div>
+                  <div class="detail-stat-value">0.41</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Bridges</div>
+                  <div class="detail-stat-value">6</div>
+                </div>
+              </div>
+              <p class="text-[10px] text-[#64748b] leading-relaxed">
+                Tightly coupled subgraph — high internal edge density relative to external connections.
+              </p>
+            </div>
+          {:else if tourStep === 2}
+            <!-- Node + embedding vector detail -->
+            <div class="tour-detail tour-detail-top-left">
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Entity Node</div>
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0 detail-pulse" style="background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);"></span>
+                <span class="text-xs text-[#e2e8f0] font-medium">National Security Agency</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 mb-2">
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Type</div>
+                  <div class="detail-stat-value text-[#fbbf24]">ORG</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Degree</div>
+                  <div class="detail-stat-value">23</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Confidence</div>
+                  <div class="detail-stat-value">0.97</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Dimensions</div>
+                  <div class="detail-stat-value">384</div>
+                </div>
+              </div>
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-1">Embedding Vector</div>
+              <div class="detail-vector">
+                <span class="text-[#475569]">[</span>{#each MOCK_EMBEDDING.slice(0, 6) as v, i}<span class="{v >= 0 ? 'text-[#34d399]' : 'text-[#f472b6]'}">{v.toFixed(4)}</span>{#if i < 5}<span class="text-[#334155]">, </span>{/if}{/each}<span class="text-[#475569]">, ... ×378</span><span class="text-[#475569]">]</span>
+              </div>
+              <div class="detail-vector-bar mt-1.5">
+                {#each MOCK_EMBEDDING as v}
+                  <div
+                    class="detail-vector-cell"
+                    style="background: {v >= 0 ? `rgba(52, 211, 153, ${Math.abs(v)})` : `rgba(244, 114, 182, ${Math.abs(v)})`};"
+                  ></div>
+                {/each}
+              </div>
+              <div class="flex justify-between text-[8px] text-[#475569] mt-0.5">
+                <span>model: all-MiniLM-L6-v2</span>
+                <span>ONNX quantized</span>
+              </div>
+            </div>
+          {:else if tourStep === 3}
+            <!-- Edge detail card -->
+            <div class="tour-detail tour-detail-top-right">
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Bridge Relationship</div>
+              <div class="flex items-center gap-2 mb-2 text-[10px]">
+                <span class="text-[#60a5fa]">NSA</span>
+                <span class="w-4 h-px border-t border-dashed border-[#94a3b8] shrink-0"></span>
+                <span class="text-[#f472b6]">SIGINT Ops</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 mb-2">
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Relation</div>
+                  <div class="detail-stat-value text-[#94a3b8]">OPERATES</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Weight</div>
+                  <div class="detail-stat-value">0.89</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Source Com.</div>
+                  <div class="detail-stat-value text-[#60a5fa]">0</div>
+                </div>
+                <div class="detail-stat">
+                  <div class="detail-stat-label">Target Com.</div>
+                  <div class="detail-stat-value text-[#f472b6]">1</div>
+                </div>
+              </div>
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-1">Extraction</div>
+              <p class="text-[10px] text-[#64748b] leading-relaxed italic">
+                "The NSA conducts signals intelligence operations across multiple theater commands..."
+              </p>
+              <div class="flex gap-1 mt-1.5">
+                {#each ['coreference', 'relation extraction', 'NER'] as tag}
+                  <span class="detail-tag">{tag}</span>
+                {/each}
+              </div>
+            </div>
+          {:else if tourStep === 4}
+            <!-- Inference pipeline card -->
+            <div class="tour-detail tour-detail-top-left">
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Inference Pipeline</div>
+              <div class="space-y-1.5 text-[10px]">
+                <div class="flex items-center gap-2">
+                  <span class="detail-pipeline-dot" style="background: #06b6d4;"></span>
+                  <span class="text-[#94a3b8] flex-1">Entity extraction</span>
+                  <span class="text-[#475569] tabular-nums">~240ms</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="detail-pipeline-dot" style="background: #22d3ee;"></span>
+                  <span class="text-[#94a3b8] flex-1">Embedding generation</span>
+                  <span class="text-[#475569] tabular-nums">~85ms</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="detail-pipeline-dot" style="background: #a78bfa;"></span>
+                  <span class="text-[#94a3b8] flex-1">Entity resolution</span>
+                  <span class="text-[#475569] tabular-nums">~180ms</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="detail-pipeline-dot" style="background: #34d399;"></span>
+                  <span class="text-[#94a3b8] flex-1">Graph upsert</span>
+                  <span class="text-[#475569] tabular-nums">~12ms</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="detail-pipeline-dot" style="background: #fbbf24;"></span>
+                  <span class="text-[#94a3b8] flex-1">Community recompute</span>
+                  <span class="text-[#475569] tabular-nums">~350ms</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-2" style="border-top: 1px solid rgba(99, 102, 241, 0.1);">
+                <div class="grid grid-cols-3 gap-1.5">
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Model</div>
+                    <div class="detail-stat-value text-[10px]">Qwen-2.5</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Runtime</div>
+                    <div class="detail-stat-value text-[10px]">vLLM</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">GPU</div>
+                    <div class="detail-stat-value text-[10px]">RTX 4090</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/if}
 
           <!-- Tooltip -->
           <div class="tour-tooltip tour-pos-{currentTourStep.position}">
@@ -1029,14 +1262,137 @@
     }
   }
 
+  /* --- Tour detail card --- */
+  .tour-detail {
+    position: absolute;
+    width: 18rem;
+    max-width: calc(100% - 2rem);
+    background: rgba(15, 15, 20, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+    animation: detail-fade-in 0.4s ease-out;
+  }
+
+  @keyframes detail-fade-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tour-detail-top-left {
+    top: 1.5rem;
+    left: 1.5rem;
+  }
+
+  .tour-detail-top-right {
+    top: 3.5rem;
+    right: 1.5rem;
+  }
+
+  .detail-stat {
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .detail-stat-label {
+    font-size: 9px;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #e2e8f0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .detail-tag {
+    font-size: 9px;
+    background: rgba(99, 102, 241, 0.1);
+    color: #94a3b8;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+  }
+
+  .detail-vector {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    line-height: 1.6;
+    padding: 0.375rem 0.5rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(99, 102, 241, 0.08);
+    border-radius: 0.25rem;
+    overflow-x: hidden;
+    white-space: nowrap;
+  }
+
+  .detail-vector-bar {
+    display: flex;
+    gap: 1px;
+    height: 12px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .detail-vector-cell {
+    flex: 1;
+    border-radius: 1px;
+    min-width: 0;
+  }
+
+  .detail-pipeline-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .detail-pulse {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 6px rgba(251, 191, 36, 0.4); }
+    50% { box-shadow: 0 0 14px rgba(251, 191, 36, 0.8); }
+  }
+
+  /* On small screens, stack detail above tooltip */
+  @media (max-width: 640px) {
+    .tour-detail {
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+      width: auto;
+      margin: 1rem 1rem 0;
+    }
+    .tour-detail-top-left,
+    .tour-detail-top-right {
+      top: auto;
+      left: 1rem;
+      right: 1rem;
+    }
+  }
+
   /* WCAG 2.3.3 — Disable animations for reduced-motion users */
   @media (prefers-reduced-motion: reduce) {
     .scroll-hint {
       animation: none !important;
     }
     .hero-panel,
-    .tour-tooltip {
+    .tour-tooltip,
+    .tour-detail {
       transition: none !important;
+      animation: none !important;
+    }
+    .detail-pulse {
+      animation: none !important;
     }
   }
 </style>
