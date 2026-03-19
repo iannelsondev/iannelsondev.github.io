@@ -6,7 +6,7 @@
 <section id="experience" class="py-16 md:py-24 lg:py-28 px-4 sm:px-6 md:px-8 max-w-6xl mx-auto" aria-labelledby="exp-heading">
   <div class="font-mono text-[0.55rem] sm:text-[0.6rem] md:text-[0.65rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">02 // Experience</div>
   <h2 id="exp-heading" class="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-[#f1f5f9] mb-12">
-    Where I've <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Built</span>
+    Track <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Record</span>
   </h2>
 
   <div class="flex flex-col gap-4 relative">
@@ -18,14 +18,11 @@
     ></div>
 
     {#each experience as entry, i}
-      <ScrollReveal delay={i % 3 === 0 ? 0 : i % 3 === 1 ? 100 : 200}>
+      <ScrollReveal delay={Math.min(i, 2) * 80}>
         <article
-          class="p-4 md:p-6 rounded-xl backdrop-blur-md transition-all duration-250 hover:shadow-[0_8px_40px_rgba(99,102,241,0.1)] md:ml-10 relative"
-          style="background: var(--card-bg); border: 1px solid var(--card-border);"
+          class="exp-card p-4 md:p-6 rounded-xl transition-all duration-200 md:ml-10 relative"
           onmouseenter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-hover)'; }}
           onmouseleave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-border)'; }}
-          onfocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-hover)'; }}
-          onblur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-border)'; }}
         >
           <!-- Timeline dot -->
           <div
@@ -62,3 +59,13 @@
     {/each}
   </div>
 </section>
+
+<style>
+  .exp-card {
+    background: rgba(15, 15, 20, 0.8);
+    border: 1px solid var(--card-border);
+  }
+  .exp-card:hover {
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+  }
+</style>
