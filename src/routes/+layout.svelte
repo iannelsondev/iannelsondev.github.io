@@ -22,6 +22,6 @@
 <Nav />
 
 <!-- Main content, offset for sidebar on md+ -->
-<div class="relative z-10 md:ml-[220px]">
+<div class="relative z-10 md:ml-[180px] lg:ml-[220px]">
   {@render children()}
 </div>

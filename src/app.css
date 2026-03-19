@@ -30,7 +30,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: clamp(14px, 0.9vw + 0.5rem, 18px);
   line-height: 1.75;
 }
 
@@ -50,4 +50,13 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(99, 102, 241, 0.4);
   border-radius: 2px;
+}
+
+@media (min-resolution: 2dppx) {
+  :root {
+    --card-border: rgba(99, 102, 241, 0.18);
+  }
+  ::-webkit-scrollbar {
+    width: 2px;
+  }
 }

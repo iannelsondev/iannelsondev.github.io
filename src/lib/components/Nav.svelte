@@ -56,7 +56,7 @@
 
 <!-- Sidebar nav -->
 <nav
-  class="fixed top-0 left-0 h-full z-[100] flex flex-col py-8 px-6 w-[220px]
+  class="fixed top-0 left-0 h-full z-[100] flex flex-col py-8 px-6 w-[180px] lg:w-[220px]
     bg-[rgba(10,10,15,0.9)] backdrop-blur-xl border-r border-[rgba(99,102,241,0.1)]
     transition-transform duration-300 ease-out
     max-md:-translate-x-full {mobileOpen ? 'max-md:translate-x-0' : ''}"

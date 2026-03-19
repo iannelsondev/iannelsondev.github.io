@@ -28,7 +28,7 @@
     AUTONOMOUS SYSTEMS · EDGE AI · INTELLIGENCE
   </p>
 
-  <p class="text-[#94a3b8] max-w-lg mx-auto mb-10 leading-relaxed text-sm">
+  <p class="text-[#94a3b8] max-w-lg mx-auto mb-10 leading-relaxed text-sm md:text-base">
     Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
   </p>
 
