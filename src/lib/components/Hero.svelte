@@ -20,6 +20,7 @@
     clearSpotlight: () => void;
     startTraversal: (seedCommunity: number) => void;
     clearTraversal: () => void;
+    triggerResize: () => void;
     getStats: () => { nodes: number; edges: number; communities: number; crossEdges: number };
     resetAll: () => void;
   }
@@ -165,10 +166,18 @@
     tourSteps[step].onLeave?.();
   }
 
+  function scheduleResize() {
+    // Resize after CSS transition (600ms) + extra frames for layout
+    setTimeout(() => graphCtrl?.triggerResize(), 50);
+    setTimeout(() => graphCtrl?.triggerResize(), 300);
+    setTimeout(() => graphCtrl?.triggerResize(), 650);
+  }
+
   function startTour() {
     tourStep = 0;
     tourActive = true;
     applyStepActions(0);
+    scheduleResize();
   }
 
   function closeTour() {
@@ -176,6 +185,7 @@
     graphCtrl?.resetAll();
     tourActive = false;
     tourStep = 0;
+    scheduleResize();
   }
 
   function nextStep() {
@@ -602,6 +612,9 @@
               }
               traversalParticles.length = 0;
             },
+            triggerResize() {
+              onResize();
+            },
             getStats() {
               return {
                 nodes: nodes.length,
@@ -661,6 +674,10 @@
             renderer.setSize(nw, nh, false);
           }
           window.addEventListener('resize', onResize);
+
+          // ResizeObserver on the glass panel — catches CSS transitions
+          const resizeObs = new ResizeObserver(() => onResize());
+          resizeObs.observe(glassEl);
 
           let edgeFrame = 0;
 
@@ -917,6 +934,7 @@
 
           cleanupFn = () => {
             renderer.setAnimationLoop(null);
+            resizeObs.disconnect();
             window.removeEventListener('mousemove', onMouse);
             window.removeEventListener('resize', onResize);
             for (const n of nodes) {
@@ -1489,7 +1507,7 @@
   }
 
   .hero-bg-tour {
-    opacity: 0.25;
+    opacity: 1;
   }
 
   .hero-glass-default {
