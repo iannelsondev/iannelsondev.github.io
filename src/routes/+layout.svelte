@@ -22,6 +22,14 @@
 <Nav />
 
 <!-- Main content, offset for sidebar on md+ -->
-<div class="relative z-10 md:ml-[180px] lg:ml-[220px]">
+<div class="relative z-10 main-content">
   {@render children()}
 </div>
+
+<style>
+  @media (min-width: 768px) {
+    .main-content {
+      margin-left: clamp(180px, 14vw, 260px);
+    }
+  }
+</style>
