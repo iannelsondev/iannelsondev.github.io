@@ -3,7 +3,7 @@
 </script>
 
 <section id="blog" class="py-28 px-8 max-w-5xl mx-auto" aria-labelledby="blog-heading">
-  <div class="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">05 // Blog</div>
+  <div class="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">06 // Blog</div>
   <h2 id="blog-heading" class="font-mono text-2xl font-bold tracking-wide text-[#f1f5f9] mb-12">
     Writing &amp; <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Ideas</span>
   </h2>

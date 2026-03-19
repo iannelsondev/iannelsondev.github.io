@@ -1,59 +1,33 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
-  interface Props {
-    seed?: number;
-    density?: number;
-    fillColor?: string;
-  }
-
-  let { seed = 42, density = 0.25, fillColor = '#6366f1' }: Props = $props();
-  let el: HTMLDivElement;
-
-  function seededRandom(s: number) {
-    let state = s;
-    return () => {
-      state = (state * 1664525 + 1013904223) & 0xffffffff;
-      return (state >>> 0) / 0xffffffff;
-    };
-  }
-
-  onMount(() => {
-    const COLS = 26, ROWS = 18, CELL = 60;
-    const W = COLS * CELL, H = ROWS * CELL;
-    const rand = seededRandom(seed);
-    let rects = '';
-    for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const x = col * CELL, y = row * CELL;
-        const r = rand();
-        if (r < density) {
-          const opacity = (0.03 + rand() * 0.57).toFixed(3);
-          rects += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${fillColor}" fill-opacity="${opacity}" stroke="${fillColor}" stroke-opacity="0.08" stroke-width="0.5"/>`;
-        } else {
-          rand(); // consume to keep sequence consistent
-          rects += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="none" stroke="${fillColor}" stroke-opacity="0.08" stroke-width="0.5"/>`;
-        }
-      }
-    }
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">${rects}</svg>`;
-    const encoded = 'data:image/svg+xml;base64,' + btoa(svg);
-    el.style.backgroundImage = `url("${encoded}")`;
-    el.style.backgroundSize = 'cover';
-    el.style.backgroundPosition = 'center';
-    el.style.backgroundAttachment = 'fixed';
-  });
+  // Pure CSS animated hex grid — no JS rendering, no DOM bloat
 </script>
 
-<div
-  bind:this={el}
-  class="fixed inset-0 pointer-events-none"
-  style="z-index: 0;"
-  aria-hidden="true"
->
-  <!-- Radial vignette overlay -->
-  <div
-    class="absolute inset-0"
-    style="background: radial-gradient(ellipse at center, transparent 20%, rgba(10,10,15,0.5) 45%, rgba(10,10,15,0.9) 100%);"
-  ></div>
+<div class="hex-bg" aria-hidden="true">
+  <div class="hex-vignette"></div>
 </div>
+
+<style>
+  .hex-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background-color: #0a0a0f;
+    /* Hex grid via repeating SVG pattern */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100' fill='none' stroke='%236366f1' stroke-opacity='0.07' stroke-width='0.5'/%3E%3Cpath d='M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34' fill='none' stroke='%236366f1' stroke-opacity='0.04' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-size: 56px 100px;
+    animation: hexDrift 25s linear infinite;
+  }
+
+  @keyframes hexDrift {
+    0% { background-position: 0 0; }
+    100% { background-position: 56px 100px; }
+  }
+
+  .hex-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 20%, rgba(10,10,15,0.5) 50%, rgba(10,10,15,0.92) 100%);
+  }
+</style>

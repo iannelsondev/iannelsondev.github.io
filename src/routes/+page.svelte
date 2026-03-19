@@ -15,8 +15,8 @@
   <Experience />
   <Skills />
   <Projects />
-  <Blog />
   <Education />
+  <Blog />
 </main>
 
 <Footer />

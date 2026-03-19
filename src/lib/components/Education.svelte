@@ -4,7 +4,7 @@
 </script>
 
 <section id="education" class="py-28 px-8 max-w-5xl mx-auto" aria-labelledby="edu-heading">
-  <div class="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">06 // Education</div>
+  <div class="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">05 // Education</div>
   <h2 id="edu-heading" class="font-mono text-2xl font-bold tracking-wide text-[#f1f5f9] mb-12">
     Academic <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Foundation</span>
   </h2>

@@ -7,8 +7,8 @@
     { href: '#experience', label: 'Experience', num: '02' },
     { href: '#skills', label: 'Skills', num: '03' },
     { href: '#projects', label: 'Projects', num: '04' },
-    { href: '#blog', label: 'Blog', num: '05' },
-    { href: '#education', label: 'Education', num: '06' }
+    { href: '#education', label: 'Education', num: '05' },
+    { href: '#blog', label: 'Blog', num: '06' }
   ];
 
   let activeSection = $state('home');
