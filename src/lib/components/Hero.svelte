@@ -249,14 +249,15 @@
 
           const scene = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
-          camera.position.z = 16;
+          camera.position.z = 22;
 
-          // Community palette (from VIPR)
+          // Community palette — 16 communities
           const COMMUNITY_PALETTE = [
             0x60a5fa, 0xf472b6, 0x34d399, 0xfbbf24, 0xa78bfa, 0xfb923c,
-            0x22d3ee, 0xe879f9,
+            0x22d3ee, 0xe879f9, 0x4ade80, 0xf87171, 0x818cf8, 0x38bdf8,
+            0xfb7185, 0xa3e635, 0xc084fc, 0x2dd4bf,
           ];
-          const NUM_COMMUNITIES = 8;
+          const NUM_COMMUNITIES = 16;
 
           // --- Community hulls (VIPR-style bounding cubes) ---
           interface CommunityZone {
@@ -271,21 +272,33 @@
           scene.add(communityGroup);
 
           const zones: CommunityZone[] = [];
-          // Spread across the full panel
+          // 16 communities spread across a wider volume
           const zonePositions = [
-            new THREE.Vector3(-6, 3, -1),
-            new THREE.Vector3(0, 4, 0.5),
-            new THREE.Vector3(6, 3, -0.5),
-            new THREE.Vector3(-5, -1, 0),
-            new THREE.Vector3(5, -0.5, -1),
-            new THREE.Vector3(-6, -4.5, 0.5),
-            new THREE.Vector3(0.5, -4, -0.5),
-            new THREE.Vector3(6, -4, 0),
+            // Top row
+            new THREE.Vector3(-8, 5, -1),
+            new THREE.Vector3(-3, 5.5, 0.5),
+            new THREE.Vector3(3, 5, -0.5),
+            new THREE.Vector3(8, 5.5, 0),
+            // Upper-mid row
+            new THREE.Vector3(-7, 1.5, 0),
+            new THREE.Vector3(-1.5, 2, -1),
+            new THREE.Vector3(4, 1.5, 0.5),
+            new THREE.Vector3(9, 2, -0.5),
+            // Lower-mid row
+            new THREE.Vector3(-8, -2, 0.5),
+            new THREE.Vector3(-2.5, -1.5, -0.5),
+            new THREE.Vector3(3, -2, 0),
+            new THREE.Vector3(8, -1.5, -1),
+            // Bottom row
+            new THREE.Vector3(-7, -5.5, -0.5),
+            new THREE.Vector3(-1, -5, 0.5),
+            new THREE.Vector3(5, -5.5, 0),
+            new THREE.Vector3(9, -5, -0.5),
           ];
 
           for (let c = 0; c < NUM_COMMUNITIES; c++) {
             const color = COMMUNITY_PALETTE[c];
-            const size = 3 + Math.random() * 2;
+            const size = 2.5 + Math.random() * 1.5;
             const geo = new THREE.BoxGeometry(size, size, size);
 
             // Transparent fill
@@ -331,8 +344,8 @@
           }
 
           const nodes: Node[] = [];
-          const COUNT = 90;
-          const EDGE_DIST = 5;
+          const COUNT = 180;
+          const EDGE_DIST = 5.5;
 
           const sphereGeo = new THREE.SphereGeometry(1, 12, 12);
 
@@ -360,8 +373,8 @@
             const glowMesh = new THREE.Mesh(sphereGeo, glowMat);
             glowMesh.scale.set(baseRadius * 2, baseRadius * 2, baseRadius * 2);
 
-            // Position near community center with wider spread
-            const spread = 1.8;
+            // Position near community center
+            const spread = 1.4;
             const x = zone.center.x + (Math.random() - 0.5) * spread * 2;
             const y = zone.center.y + (Math.random() - 0.5) * spread * 2;
             const z = zone.center.z + (Math.random() - 0.5) * spread * 2;
@@ -385,7 +398,7 @@
           for (let i = 0; i < COUNT; i++) nodes.push(spawn(true));
 
           // --- Solid intra-community edges ---
-          const MAX_SOLID = 600;
+          const MAX_SOLID = 1200;
           const solidArr = new Float32Array(MAX_SOLID * 6);
           const solidGeo = new THREE.BufferGeometry();
           solidGeo.setAttribute('position', new THREE.BufferAttribute(solidArr, 3));
@@ -400,7 +413,7 @@
           scene.add(new THREE.LineSegments(solidGeo, solidMat));
 
           // --- Dashed cross-community edges ---
-          const MAX_DASHED = 400;
+          const MAX_DASHED = 800;
           const dashedArr = new Float32Array(MAX_DASHED * 6);
           const dashedGeo = new THREE.BufferGeometry();
           dashedGeo.setAttribute('position', new THREE.BufferAttribute(dashedArr, 3));
@@ -510,14 +523,14 @@
           graphCtrl = {
             focusCommunity(index: number) {
               const z = zones[index % zones.length];
-              camTargetX = z.center.x * 0.4;
-              camTargetY = z.center.y * 0.4;
-              camTargetZ = 10;
+              camTargetX = z.center.x * 0.35;
+              camTargetY = z.center.y * 0.35;
+              camTargetZ = 14;
             },
             focusOverview() {
               camTargetX = 0;
               camTargetY = 0;
-              camTargetZ = 16;
+              camTargetZ = 22;
             },
             highlightCommunities(boost: boolean) {
               targetFillOpacity = boost ? 0.12 : DEFAULT_FILL_OPACITY;
@@ -600,7 +613,7 @@
             resetAll() {
               camTargetX = 0;
               camTargetY = 0;
-              camTargetZ = 16;
+              camTargetZ = 22;
               rotSpeed = 0.0005;
               targetFillOpacity = DEFAULT_FILL_OPACITY;
               targetWireOpacity = DEFAULT_WIRE_OPACITY;
@@ -686,10 +699,10 @@
               const p = n.mesh.position;
               const zone = zones[n.community];
 
-              // Pull toward community center
-              n.vx -= (p.x - zone.center.x) * 0.0005;
-              n.vy -= (p.y - zone.center.y) * 0.0005;
-              n.vz -= (p.z - zone.center.z) * 0.0003;
+              // Pull toward community center (stronger to keep nodes in cluster)
+              n.vx -= (p.x - zone.center.x) * 0.0012;
+              n.vy -= (p.y - zone.center.y) * 0.0012;
+              n.vz -= (p.z - zone.center.z) * 0.0008;
 
               // Neighbour repulsion
               for (let j = 0; j < nodes.length; j++) {
@@ -1485,7 +1498,7 @@
 
   .hero-glass-expanded {
     max-width: calc(100% - 1.5rem);
-    min-height: min(85vh, calc(100% - 1.5rem));
+    height: calc(100vh - 3rem);
   }
 
   .hero-text-glass {
