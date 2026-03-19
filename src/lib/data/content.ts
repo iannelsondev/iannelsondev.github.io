@@ -44,9 +44,9 @@ export interface MetaCard {
 }
 
 export const bio: string[] = [
-  'Agentic orchestrator. Two decades of building systems that think, act, and adapt — from signals intelligence automation at NSA to autonomous multi-agent swarms running on bare metal today. Everything I build leans into the edge: on-prem AI that matches frontier models, knowledge graph pipelines that turn noise into structure, and inference systems that run where the data lives.',
-  'The through-line: making machines do the hard work. SIGINT automation in the Army. Streaming analytics at IronNet. Automated underwriting at Coalition that drove $250M in GWP. Now: orchestrating autonomous agent systems, deploying open-weight models on GPU clusters, and building knowledge graphs that make LLMs actually useful.',
-  'CTO at Clarity running R&D. CEO of Talon Black building AI-driven risk platforms. Every day is about pushing the boundary of what you can run on your own hardware — multi-agent coordination, edge inference, graph-enabled reasoning — without sending a single token to someone else\'s API.'
+  'I build things that don\'t exist yet. Over two decades across the Intelligence Community, the military, cybersecurity, insurance, and AI, the constant has been the same — find the problem no one knows how to frame and build what solves it. I don\'t follow domains. I follow the edge.',
+  'Twenty-six years in and I\'ve kept my hands on the keyboard by design. I can operate at any scale, from a team of one to organizations of thousands, but I do my best work building — staying ahead by doing. Right now that means autonomous multi-agent systems, on-prem AI rivaling frontier models, knowledge graphs that pull signal from noise, and inference engines that run where the data lives.',
+  'Off the clock — married over twenty years, raising two sons headed toward military commissions, two dogs running the house, and a lifelong metalhead. Covered in tattoos that aren\'t for everyone, but they\'re for me. I believe we\'re accelerating toward something most people aren\'t ready to talk about yet. If you\'re building at the boundary of what\'s possible, we should connect.'
 ];
 
 export const metaCards: MetaCard[] = [
