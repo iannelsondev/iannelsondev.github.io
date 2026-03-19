@@ -61,7 +61,7 @@
       const edgeMat = new THREE.LineBasicMaterial({
         color: INDIGO,
         transparent: true,
-        opacity: 0.12,
+        opacity: 0.25,
       });
       const edgeMesh = new THREE.LineSegments(edgeGeo, edgeMat);
       scene.add(edgeMesh);
@@ -94,7 +94,7 @@
       let lastSpawn = 0;
 
       function createNode(): GraphNode {
-        const radius = 0.08 + Math.random() * 0.17; // 0.08–0.25
+        const radius = 0.15 + Math.random() * 0.3; // 0.15–0.45 (bigger, more visible)
         const colorHex = NODE_COLORS[Math.floor(Math.random() * NODE_COLORS.length)];
 
         const mat = new THREE.MeshBasicMaterial({
@@ -108,11 +108,11 @@
         const glowMat = new THREE.MeshBasicMaterial({
           color: colorHex,
           transparent: true,
-          opacity: 0.08,
+          opacity: 0.2,
           side: THREE.BackSide,
         });
         const glow = new THREE.Mesh(glowGeo, glowMat);
-        glow.scale.setScalar(radius * 2.8);
+        glow.scale.setScalar(radius * 3.5);
         mesh.add(glow);
 
         // Spawn at random edge of the view volume
@@ -250,7 +250,7 @@
           const mat = node.mesh.material as THREE.MeshBasicMaterial;
           const glowMat = node.glow.material as THREE.MeshBasicMaterial;
           mat.opacity = opacity * 0.9;
-          glowMat.opacity = opacity * 0.08;
+          glowMat.opacity = opacity * 0.2;
           node.mesh.scale.setScalar(node.radius * (t > 0.85 ? opacity : 1));
 
           if (t >= 1) {
@@ -343,98 +343,93 @@
   class="relative h-full w-full overflow-hidden"
   aria-label="Introduction"
 >
-  <!-- Three.js canvas: fills section, sits behind all content -->
-  <canvas
-    bind:this={canvas}
-    class="absolute inset-0 w-full h-full"
-    aria-hidden="true"
-  ></canvas>
+  <!-- Glass panel with Three.js behind, content on top -->
+  <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
+    <div class="hero-glass relative w-full max-w-4xl rounded-2xl overflow-hidden">
 
-  <!-- Content overlay -->
-  <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-8 py-24 gap-0">
+      <!-- Three.js renders INTO this panel -->
+      <canvas
+        bind:this={canvas}
+        class="absolute inset-0 w-full h-full"
+        aria-hidden="true"
+        style="z-index: 0;"
+      ></canvas>
 
-    <!-- Name -->
-    <h1
-      class="font-bold leading-none mb-4"
-      style="
-        font-family: 'Poppins', sans-serif;
-        font-size: clamp(2.5rem, 6vw, 5rem);
-        letter-spacing: 0.15em;
-        color: #f1f5f9;
-        text-shadow: 0 0 40px rgba(99,102,241,0.3), 0 0 80px rgba(99,102,241,0.15);
-      "
-    >
-      IAN NELSON
-    </h1>
+      <!-- Content sits on top of the Three.js canvas inside the glass -->
+      <div class="relative z-10 flex flex-col items-center justify-center text-center px-6 sm:px-10 md:px-16 py-12 md:py-16">
 
-    <!-- Subtitle -->
-    <p
-      class="uppercase tracking-[0.35em] text-[#94a3b8] mb-5"
-      style="
-        font-family: 'JetBrains Mono', monospace;
-        font-size: clamp(0.6rem, 0.8vw, 0.85rem);
-      "
-    >
-      AUTONOMOUS SYSTEMS · EDGE AI · INTELLIGENCE
-    </p>
+        <h1 class="hero-name leading-[0.95] mb-5">Ian Nelson</h1>
 
-    <!-- Tagline -->
-    <p
-      class="text-[#94a3b8] max-w-lg mx-auto mb-10 leading-[1.8]"
-      style="
-        font-family: 'Poppins', sans-serif;
-        font-weight: 300;
-        font-size: clamp(0.875rem, 1vw, 1.05rem);
-      "
-    >
-      Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
-    </p>
+        <p
+          class="font-mono uppercase tracking-[0.3em] text-[#94a3b8] mb-5"
+          style="font-size: clamp(0.55rem, 0.75vw, 0.8rem);"
+        >
+          Autonomous Systems · Edge AI · Intelligence
+        </p>
 
-    <!-- CTA buttons -->
-    <div class="flex flex-wrap gap-3 justify-center mb-14">
-      <a
-        href="https://linkedin.com/in/iannelsondev"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[#f1f5f9] px-6 py-3 rounded-md
-          transition-[transform,background] duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-        style="border: 1px solid transparent; background: linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box;"
-        onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
-        onfocus={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
-        onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box'; }}
-        onblur={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box'; }}
-      >LinkedIn</a>
+        <p
+          class="text-[#94a3b8] max-w-lg mx-auto mb-8 font-light leading-[1.8]"
+          style="font-size: clamp(0.85rem, 0.95vw, 1rem);"
+        >
+          Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
+        </p>
 
-      <a
-        href="https://github.com/iannelsondev"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[#f1f5f9] px-6 py-3 rounded-md
-          transition-[transform,background] duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-        style="border: 1px solid transparent; background: linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box;"
-        onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
-        onfocus={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
-        onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box'; }}
-        onblur={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box'; }}
-      >GitHub</a>
-
-      <a
-        href="mailto:iannelsondev@proton.me"
-        class="font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[#f1f5f9] px-6 py-3 rounded-md
-          transition-[transform,background] duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-        style="border: 1px solid transparent; background: linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box;"
-        onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
-        onfocus={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(135deg, #6366f1, #06b6d4)'; }}
-        onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box'; }}
-        onblur={(e) => { (e.currentTarget as HTMLElement).style.background = 'linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, #6366f1, #06b6d4) border-box'; }}
-      >iannelsondev@proton.me</a>
+        <div class="flex flex-wrap gap-3 justify-center">
+          <a href="https://linkedin.com/in/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">LinkedIn</a>
+          <a href="https://github.com/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">GitHub</a>
+          <a href="mailto:iannelsondev@proton.me" class="hero-btn">iannelsondev@proton.me</a>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Scroll indicator -->
-    <div class="flex flex-col items-center gap-2 animate-bounce" aria-hidden="true" style="opacity: 0.4;">
-      <span class="font-mono text-[0.55rem] tracking-[0.2em] uppercase text-[#94a3b8]">SCROLL</span>
-      <div class="w-px h-8" style="background: linear-gradient(to bottom, #6366f1, transparent);"></div>
-    </div>
-
+  <!-- Scroll indicator outside the glass -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-bounce" aria-hidden="true" style="opacity: 0.35;">
+    <span class="font-mono text-[0.5rem] tracking-[0.2em] uppercase text-[#94a3b8]">SCROLL</span>
+    <div class="w-px h-6" style="background: linear-gradient(to bottom, #6366f1, transparent);"></div>
   </div>
 </section>
+
+<style>
+  .hero-glass {
+    background: rgba(12, 12, 18, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    box-shadow:
+      0 0 60px rgba(99, 102, 241, 0.06),
+      0 25px 60px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .hero-name {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+    letter-spacing: -0.02em;
+    color: #f1f5f9;
+    text-shadow:
+      0 0 30px rgba(99, 102, 241, 0.25),
+      0 0 60px rgba(99, 102, 241, 0.1);
+  }
+
+  .hero-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #f1f5f9;
+    padding: 0.65rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(12, 12, 18, 0.8), rgba(12, 12, 18, 0.8)) padding-box,
+      linear-gradient(135deg, #6366f1, #06b6d4) border-box;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .hero-btn:hover {
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    transform: translateY(-2px);
+  }
+</style>
