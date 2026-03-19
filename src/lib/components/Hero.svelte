@@ -399,9 +399,9 @@
       <!-- Three.js canvas — fills entire panel -->
       <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 1;" aria-hidden="true"></canvas>
 
-      <!-- Text content — glass panel only when WebGL renders -->
-      <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
-        <div class="{webglReady ? 'hero-text-glass' : ''} rounded-xl px-8 sm:px-12 md:px-16 py-10 md:py-14 max-w-2xl w-full mx-4">
+      <!-- Text content — in flow so the glass panel gets intrinsic height -->
+      <div class="relative flex items-center justify-center" style="z-index: 2;">
+        <div class="{webglReady ? 'hero-text-glass' : ''} rounded-xl px-8 sm:px-12 md:px-16 py-14 md:py-20 max-w-2xl w-full mx-4">
           <div class="flex flex-col items-center text-center">
             <h1 class="hero-name leading-[0.9] mb-5">
               <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
