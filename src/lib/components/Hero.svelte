@@ -3,6 +3,7 @@
 
   let canvasEl = $state<HTMLCanvasElement | null>(null);
   let glassEl = $state<HTMLDivElement | null>(null);
+  let webglReady = $state(false);
 
   onMount(() => {
     if (!canvasEl || !glassEl) return;
@@ -45,13 +46,14 @@
 
           const scene = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
-          camera.position.z = 12;
+          camera.position.z = 16;
 
           // Community palette (from VIPR)
           const COMMUNITY_PALETTE = [
             0x60a5fa, 0xf472b6, 0x34d399, 0xfbbf24, 0xa78bfa, 0xfb923c,
+            0x22d3ee, 0xe879f9,
           ];
-          const NUM_COMMUNITIES = 4;
+          const NUM_COMMUNITIES = 8;
 
           // --- Community hulls (VIPR-style bounding cubes) ---
           interface CommunityZone {
@@ -66,35 +68,41 @@
           scene.add(communityGroup);
 
           const zones: CommunityZone[] = [];
+          // Spread across the full panel
           const zonePositions = [
-            new THREE.Vector3(-3.5, 1.5, -1),
-            new THREE.Vector3(3, 2, 0.5),
-            new THREE.Vector3(-2, -2.5, 0),
-            new THREE.Vector3(3.5, -1.8, -0.5),
+            new THREE.Vector3(-6, 3, -1),
+            new THREE.Vector3(0, 4, 0.5),
+            new THREE.Vector3(6, 3, -0.5),
+            new THREE.Vector3(-5, -1, 0),
+            new THREE.Vector3(5, -0.5, -1),
+            new THREE.Vector3(-6, -4.5, 0.5),
+            new THREE.Vector3(0.5, -4, -0.5),
+            new THREE.Vector3(6, -4, 0),
           ];
 
           for (let c = 0; c < NUM_COMMUNITIES; c++) {
-            const color = COMMUNITY_PALETTE[c % COMMUNITY_PALETTE.length];
-            const size = 2.5 + Math.random() * 1.5;
+            const color = COMMUNITY_PALETTE[c];
+            const size = 3 + Math.random() * 2;
             const geo = new THREE.BoxGeometry(size, size, size);
 
             // Transparent fill
             const fillMat = new THREE.MeshBasicMaterial({
               color,
               transparent: true,
-              opacity: 0.04,
+              opacity: 0.035,
               depthWrite: false,
+              side: THREE.DoubleSide,
             });
             const fillMesh = new THREE.Mesh(geo, fillMat);
             fillMesh.position.copy(zonePositions[c]);
             communityGroup.add(fillMesh);
 
-            // Wireframe edges
+            // Wireframe edges — more visible
             const edgesGeo = new THREE.EdgesGeometry(geo);
             const wireMat = new THREE.LineBasicMaterial({
               color,
               transparent: true,
-              opacity: 0.15,
+              opacity: 0.3,
             });
             const wireMesh = new THREE.LineSegments(edgesGeo, wireMat);
             wireMesh.position.copy(zonePositions[c]);
@@ -120,8 +128,8 @@
           }
 
           const nodes: Node[] = [];
-          const COUNT = 40;
-          const EDGE_DIST = 3.5;
+          const COUNT = 90;
+          const EDGE_DIST = 5;
 
           const sphereGeo = new THREE.SphereGeometry(1, 12, 12);
 
@@ -129,9 +137,8 @@
             const community = Math.floor(Math.random() * NUM_COMMUNITIES);
             const zone = zones[community];
             const color = zone.color;
-            const baseRadius = 0.08 + Math.random() * 0.12;
+            const baseRadius = 0.08 + Math.random() * 0.14;
 
-            // Core sphere
             const mat = new THREE.MeshBasicMaterial({
               color,
               transparent: true,
@@ -140,7 +147,6 @@
             const mesh = new THREE.Mesh(sphereGeo, mat);
             mesh.scale.set(baseRadius, baseRadius, baseRadius);
 
-            // Glow sphere
             const glowMat = new THREE.MeshBasicMaterial({
               color,
               transparent: true,
@@ -149,10 +155,10 @@
               depthWrite: false,
             });
             const glowMesh = new THREE.Mesh(sphereGeo, glowMat);
-            glowMesh.scale.set(baseRadius * 1.8, baseRadius * 1.8, baseRadius * 1.8);
+            glowMesh.scale.set(baseRadius * 2, baseRadius * 2, baseRadius * 2);
 
-            // Position near community center
-            const spread = 1.2;
+            // Position near community center with wider spread
+            const spread = 1.8;
             const x = zone.center.x + (Math.random() - 0.5) * spread * 2;
             const y = zone.center.y + (Math.random() - 0.5) * spread * 2;
             const z = zone.center.z + (Math.random() - 0.5) * spread * 2;
@@ -176,7 +182,7 @@
           for (let i = 0; i < COUNT; i++) nodes.push(spawn(true));
 
           // --- Solid intra-community edges ---
-          const MAX_SOLID = 300;
+          const MAX_SOLID = 600;
           const solidArr = new Float32Array(MAX_SOLID * 6);
           const solidGeo = new THREE.BufferGeometry();
           solidGeo.setAttribute('position', new THREE.BufferAttribute(solidArr, 3));
@@ -184,14 +190,14 @@
           const solidMat = new THREE.LineBasicMaterial({
             color: 0x6366f1,
             transparent: true,
-            opacity: 0.35,
+            opacity: 0.4,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
           });
           scene.add(new THREE.LineSegments(solidGeo, solidMat));
 
           // --- Dashed cross-community edges ---
-          const MAX_DASHED = 200;
+          const MAX_DASHED = 400;
           const dashedArr = new Float32Array(MAX_DASHED * 6);
           const dashedGeo = new THREE.BufferGeometry();
           dashedGeo.setAttribute('position', new THREE.BufferAttribute(dashedArr, 3));
@@ -199,7 +205,7 @@
           const dashedMat = new THREE.LineDashedMaterial({
             color: 0x94a3b8,
             transparent: true,
-            opacity: 0.2,
+            opacity: 0.18,
             dashSize: 0.15,
             gapSize: 0.1,
             blending: THREE.AdditiveBlending,
@@ -213,8 +219,8 @@
 
           function onMouse(e: MouseEvent) {
             const rect = glassEl!.getBoundingClientRect();
-            targetCX = ((e.clientX - rect.left) / rect.width  - 0.5) * 1.5;
-            targetCY = -((e.clientY - rect.top)  / rect.height - 0.5) * 1.5;
+            targetCX = ((e.clientX - rect.left) / rect.width  - 0.5) * 2;
+            targetCY = -((e.clientY - rect.top)  / rect.height - 0.5) * 2;
           }
           window.addEventListener('mousemove', onMouse);
 
@@ -240,7 +246,7 @@
             const now = performance.now();
 
             // Spawn replacement nodes
-            if (nodes.length < COUNT && now - lastSpawn > 400) {
+            if (nodes.length < COUNT && now - lastSpawn > 250) {
               nodes.push(spawn(false));
               lastSpawn = now;
             }
@@ -254,10 +260,10 @@
               const alpha = fadeIn * fadeOut;
 
               n.mat.opacity = alpha;
-              n.glowMat.opacity = alpha * 0.3;
+              n.glowMat.opacity = alpha * 0.35;
               const sc = n.baseRadius * (t > 0.85 ? fadeOut : 1);
               n.mesh.scale.set(sc, sc, sc);
-              n.glowMesh.scale.set(sc * 1.8, sc * 1.8, sc * 1.8);
+              n.glowMesh.scale.set(sc * 2, sc * 2, sc * 2);
 
               if (t >= 1) {
                 nodeGroup.remove(n.mesh);
@@ -272,8 +278,8 @@
               const zone = zones[n.community];
 
               // Pull toward community center
-              n.vx -= (p.x - zone.center.x) * 0.0006;
-              n.vy -= (p.y - zone.center.y) * 0.0006;
+              n.vx -= (p.x - zone.center.x) * 0.0005;
+              n.vy -= (p.y - zone.center.y) * 0.0005;
               n.vz -= (p.z - zone.center.z) * 0.0003;
 
               // Neighbour repulsion
@@ -337,13 +343,15 @@
               dashedLines.computeLineDistances();
             }
 
-            // Gentle hull rotation + mouse parallax
-            communityGroup.rotation.y += 0.0006;
+            // Gentle rotation + mouse parallax
+            communityGroup.rotation.y += 0.0005;
             nodeGroup.rotation.y = communityGroup.rotation.y;
             camera.position.x += (targetCX - camera.position.x) * 0.025;
             camera.position.y += (targetCY - camera.position.y) * 0.025;
             renderer.render(scene, camera);
           });
+
+          webglReady = true;
 
           cleanupFn = () => {
             renderer.setAnimationLoop(null);
@@ -388,31 +396,31 @@
       <!-- Dark opaque background layer -->
       <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.92); z-index: 0;"></div>
 
-      <!-- Three.js canvas -->
+      <!-- Three.js canvas — fills entire panel -->
       <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 1;" aria-hidden="true"></canvas>
 
-      <!-- Scrim — softens graph behind text center for readability -->
-      <div class="absolute inset-0 rounded-2xl" style="z-index: 2; background: radial-gradient(ellipse at center, rgba(8, 8, 14, 0.65) 0%, rgba(8, 8, 14, 0.2) 60%, transparent 100%);"></div>
+      <!-- Text content — glass panel only when WebGL renders -->
+      <div class="absolute inset-0 flex items-center justify-center" style="z-index: 2;">
+        <div class="{webglReady ? 'hero-text-glass' : ''} rounded-xl px-8 sm:px-12 md:px-16 py-10 md:py-14 max-w-2xl w-full mx-4">
+          <div class="flex flex-col items-center text-center">
+            <h1 class="hero-name leading-[0.9] mb-5">
+              <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
+            </h1>
 
-      <!-- Text content -->
-      <div class="hero-content relative flex flex-col items-center justify-center text-center px-6 sm:px-10 md:px-16 py-14 md:py-20" style="z-index: 3;">
+            <p class="font-mono uppercase tracking-[0.3em] text-[#94a3b8] mb-5" style="font-size: clamp(0.55rem, 0.75vw, 0.8rem);">
+              Autonomous Systems · Edge AI · Intelligence
+            </p>
 
-        <h1 class="hero-name leading-[0.9] mb-5" style="text-shadow: 0 2px 20px rgba(0,0,0,0.8);">
-          <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
-        </h1>
+            <p class="text-[#94a3b8] max-w-lg mx-auto mb-8 font-light leading-[1.8]" style="font-size: clamp(0.85rem, 0.95vw, 1rem);">
+              Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
+            </p>
 
-        <p class="font-mono uppercase tracking-[0.3em] text-[#94a3b8] mb-5" style="font-size: clamp(0.55rem, 0.75vw, 0.8rem); text-shadow: 0 1px 8px rgba(0,0,0,0.9);">
-          Autonomous Systems · Edge AI · Intelligence
-        </p>
-
-        <p class="text-[#94a3b8] max-w-lg mx-auto mb-8 font-light leading-[1.8]" style="font-size: clamp(0.85rem, 0.95vw, 1rem); text-shadow: 0 1px 8px rgba(0,0,0,0.9);">
-          Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
-        </p>
-
-        <div class="flex flex-wrap gap-3 justify-center">
-          <a href="https://linkedin.com/in/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">LinkedIn</a>
-          <a href="https://github.com/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">GitHub</a>
-          <a href="mailto:iannelsondev@proton.me" class="hero-btn">iannelsondev@proton.me</a>
+            <div class="flex flex-wrap gap-3 justify-center">
+              <a href="https://linkedin.com/in/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">LinkedIn</a>
+              <a href="https://github.com/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">GitHub</a>
+              <a href="mailto:iannelsondev@proton.me" class="hero-btn">iannelsondev@proton.me</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -432,6 +440,16 @@
       0 0 80px rgba(99, 102, 241, 0.06),
       0 30px 80px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .hero-text-glass {
+    background: rgba(8, 8, 14, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    box-shadow:
+      0 0 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
   .hero-name {
