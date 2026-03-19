@@ -29,13 +29,28 @@
       navigation: false,
       controlArrows: true,
       slidesNavigation: false,
+      anchors: sectionAnchors,
+      recordHistory: true,
+      lockAnchors: false,
       afterLoad: (_origin: any, destination: any) => {
         const anchor = sectionAnchors[destination.index] || '';
         window.dispatchEvent(new CustomEvent('fp-section-change', {
           detail: { index: destination.index, anchor }
         }));
+      },
+      afterSlideLoad: (_section: any, _origin: any, destination: any) => {
+        // Update URL with slide index for experience sub-slides
+        window.dispatchEvent(new CustomEvent('fp-slide-change', {
+          detail: { slideIndex: destination.index }
+        }));
       }
     });
+
+    // Handle initial hash on page load (e.g. direct link to #skills)
+    const hash = window.location.hash.replace('#', '').split('/')[0];
+    if (hash && sectionAnchors.includes(hash)) {
+      // fullPage handles this automatically via anchors config
+    }
 
     return () => {
       // @ts-ignore

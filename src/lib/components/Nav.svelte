@@ -28,6 +28,10 @@
   }
 
   onMount(() => {
+    // Set initial active from URL hash
+    const hash = window.location.hash.replace('#', '').split('/')[0];
+    if (hash) activeSection = hash;
+
     // Listen for fullPage.js section changes
     function onSectionChange(e: Event) {
       const detail = (e as CustomEvent).detail;
@@ -35,8 +39,19 @@
         activeSection = detail.anchor;
       }
     }
+
+    // Also listen for browser back/forward
+    function onHashChange() {
+      const h = window.location.hash.replace('#', '').split('/')[0];
+      if (h) activeSection = h;
+    }
+
     window.addEventListener('fp-section-change', onSectionChange);
-    return () => window.removeEventListener('fp-section-change', onSectionChange);
+    window.addEventListener('hashchange', onHashChange);
+    return () => {
+      window.removeEventListener('fp-section-change', onSectionChange);
+      window.removeEventListener('hashchange', onHashChange);
+    };
   });
 </script>
 
