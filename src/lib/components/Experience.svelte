@@ -70,12 +70,13 @@
           <!-- Right: map + location -->
           <div class="map-panel flex flex-col">
             <div class="flex-1 min-h-[160px] lg:min-h-0 relative">
-              <img
-                src="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/{entry.lon},{entry.lat},8,0/280x300@2x?access_token=REDACTED_MAPBOX_TOKEN&attribution=false&logo=false"
-                alt="Map showing {entry.location}"
-                class="w-full h-full object-cover"
+              <iframe
+                title="Map showing {entry.location}"
+                class="w-full h-full border-0"
+                style="filter: grayscale(1) brightness(0.25) contrast(1.3) sepia(0.2) hue-rotate(200deg); pointer-events: none;"
+                src="https://www.openstreetmap.org/export/embed.html?bbox={entry.lon - 1},{entry.lat - 0.5},{entry.lon + 1},{entry.lat + 0.5}&layer=mapnik"
                 loading="lazy"
-              />
+              ></iframe>
               <!-- Location overlay -->
               <div class="absolute bottom-0 left-0 right-0 p-3 md:p-4" style="background: linear-gradient(transparent, rgba(10,10,15,0.95));">
                 <div class="font-mono text-[0.55rem] md:text-[0.6rem] tracking-[0.2em] uppercase text-[#6366f1] mb-0.5">Location</div>
