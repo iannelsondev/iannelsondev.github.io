@@ -31,6 +31,7 @@
 		"vite-plugin-css-injected-by-js": "^4.0.1"
 	},
 	"dependencies": {
-		"fullpage.js": "^4.0.41"
+		"fullpage.js": "^4.0.41",
+		"leaflet": "^1.9.4"
 	}
 }

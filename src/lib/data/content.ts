@@ -45,7 +45,7 @@ export const bio: string[] = [
 export const metaCards: MetaCard[] = [
   {
     label: 'Current Roles',
-    value: '<strong>CTO, R&D</strong> — Clarity<br><strong>CEO</strong> — Talon Black',
+    value: '<strong>CTO, R&D</strong> — Clarity Innovations<br><strong>CEO</strong> — Talon Black',
     isHtml: true
   },
   {
@@ -68,11 +68,11 @@ export const experience: ExperienceEntry[] = [
   {
     avatar: 'C',
     role: 'CTO, R&D',
-    company: 'Clarity',
+    company: 'Clarity Innovations',
     companyDesc: 'Intelligence Community services and technology company delivering mission-critical solutions across the national security enterprise.',
     dates: 'JUL 2023 – PRESENT',
-    location: 'Columbia, MD',
-    lat: 39.2037, lon: -76.8610,
+    location: '6940 Columbia Gateway Dr, Columbia, MD',
+    lat: 39.1757, lon: -76.8386,
     bullets: [
       'Led R&D organization and built the Labs division from the ground up',
       'Shipped novel product capabilities; managed P&L and org growth strategy',
@@ -85,8 +85,8 @@ export const experience: ExperienceEntry[] = [
     company: 'Talon Black',
     companyDesc: 'AI/ML-assisted risk intelligence platform. Autonomous analysis, multi-agent swarm architectures, and derived value generation for enterprise clients.',
     dates: 'JUN 2023 – PRESENT',
-    location: 'Remote — United States',
-    lat: 39.0458, lon: -76.6413,
+    location: 'Severna Park, MD (Remote)',
+    lat: 39.0703, lon: -76.5452,
     bullets: [
       'Founded and scaled AI/ML-assisted risk solutions platform',
       'Automated analysis pipelines delivering derived value for clients worldwide',
@@ -99,8 +99,8 @@ export const experience: ExperienceEntry[] = [
     company: 'Coalition, Inc.',
     companyDesc: 'Active cyber insurance and security company combining insurance with cybersecurity technology to manage and mitigate digital risk.',
     dates: 'DEC 2021 – JUL 2023',
-    location: 'San Francisco, CA (Remote)',
-    lat: 37.7749, lon: -122.4194,
+    location: '1160 Battery St, San Francisco, CA',
+    lat: 37.7983, lon: -122.4009,
     bullets: [
       'Applied technologist embedding engineering capability into insurance operations',
       'Delivered $250M GWP ROI through process automation and tooling'
@@ -112,8 +112,8 @@ export const experience: ExperienceEntry[] = [
     company: 'Coalition, Inc.',
     companyDesc: 'Active cyber insurance and security company combining insurance with cybersecurity technology to manage and mitigate digital risk.',
     dates: 'MAR 2018 – DEC 2021',
-    location: 'San Francisco, CA (Remote)',
-    lat: 37.7749, lon: -122.4194,
+    location: '1160 Battery St, San Francisco, CA',
+    lat: 37.7983, lon: -122.4009,
     bullets: [
       'Lead principal engineer across 3 VPE rotations; maintained architectural continuity',
       'Built automated renewals platform handling $100M+ in gross written premium',
@@ -126,8 +126,8 @@ export const experience: ExperienceEntry[] = [
     company: 'Clarity Innovations',
     companyDesc: 'Technology services company focused on IC and defense programs, specializing in agile software development and systems integration.',
     dates: 'JUN 2015 – AUG 2020',
-    location: 'Hanover, MD',
-    lat: 39.1929, lon: -76.7241,
+    location: '7170 Riverwood Dr, Hanover, MD',
+    lat: 39.1753, lon: -76.7267,
     bullets: [
       'Provided technology roadmap guidance and strategic direction',
       'Supported contract acquisition and business development within the IC'
@@ -139,8 +139,8 @@ export const experience: ExperienceEntry[] = [
     company: '[Redacted]',
     companyDesc: 'Private sector intelligence and analysis firm.',
     dates: 'AUG 2016 – APR 2018',
-    location: 'San Francisco Bay Area',
-    lat: 37.5585, lon: -122.2711,
+    location: 'Elkridge, MD',
+    lat: 39.2126, lon: -76.7136,
     bullets: [
       'Led data center buildout and physical infrastructure architecture',
       'JAMF-based macOS/iOS fleet management; CI/CD pipeline implementation'
@@ -152,8 +152,8 @@ export const experience: ExperienceEntry[] = [
     company: 'IronNet Cybersecurity',
     companyDesc: 'Network detection and response company founded by former NSA Director Gen. Keith Alexander. Real-time behavioral analytics on network traffic.',
     dates: 'OCT 2014 – JUL 2016',
-    location: 'Fulton, MD',
-    lat: 39.1501, lon: -76.9244,
+    location: '8135 Maple Lawn Blvd, Fulton, MD',
+    lat: 39.1455, lon: -76.9081,
     bullets: [
       'Designed streaming analytics infrastructure on Kafka and Spark',
       'Built first-product network behavior visualization UI',
@@ -166,7 +166,7 @@ export const experience: ExperienceEntry[] = [
     company: 'NSA',
     companyDesc: 'National Security Agency — signals intelligence and information assurance for the United States Government.',
     dates: 'APR 2012 – OCT 2014',
-    location: 'Fort Meade, MD',
+    location: 'Fort George G. Meade, MD',
     lat: 39.1086, lon: -76.7711,
     bullets: [
       'Led OWF/OZONE teams and the IC Application Mall under IC ITE',
@@ -180,8 +180,8 @@ export const experience: ExperienceEntry[] = [
     company: 'Akimeka',
     companyDesc: 'Defense contractor providing technology services and solutions to DoD and intelligence community clients in the Pacific theater.',
     dates: 'AUG 2011 – APR 2012',
-    location: 'Hawaii',
-    lat: 21.3069, lon: -157.8583,
+    location: 'Kunia, Hawaii',
+    lat: 21.4561, lon: -158.0148,
     bullets: [
       'Built HTML5 real-time spectrum analyzer for DoD client',
       'Prototyped geospatial analytics on Hadoop/Accumulo stack'
@@ -193,8 +193,8 @@ export const experience: ExperienceEntry[] = [
     company: 'TexelTek',
     companyDesc: 'Small technology firm delivering web application frameworks and analyst tools to the intelligence community.',
     dates: 'JAN 2009 – JUL 2011',
-    location: 'Hawaii',
-    lat: 21.3069, lon: -157.8583,
+    location: 'Kunia, Hawaii',
+    lat: 21.4561, lon: -158.0148,
     bullets: [
       'Developed OZONE Widget Framework and RT-RG analyst suite',
       'Scaled platform to 300+ concurrent analyst users'
@@ -206,8 +206,8 @@ export const experience: ExperienceEntry[] = [
     company: 'U.S. Army / NSA Hawaii',
     companyDesc: 'NSA/CSS Hawaii — signals intelligence collection and analysis supporting national and theater intelligence requirements in the Pacific.',
     dates: '2002 – 2007',
-    location: 'Kunia, Hawaii',
-    lat: 21.4561, lon: -158.0148,
+    location: 'Schofield Barracks, Hawaii (500th MI BDE)',
+    lat: 21.4939, lon: -158.0653,
     bullets: [
       'Performed SIGINT collection and analysis; recognized for mission impact',
       'Developed mission automation tools that accelerated analyst workflows',

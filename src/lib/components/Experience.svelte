@@ -1,5 +1,6 @@
 <script lang="ts">
   import { experience } from '$lib/data/content';
+  import MiniMap from './MiniMap.svelte';
 </script>
 
 <div class="flex flex-col h-full">
@@ -67,38 +68,20 @@
             </div>
           </div>
 
-          <!-- Right: location panel with SVG map -->
-          <div class="map-panel flex flex-col justify-center items-center p-6 md:p-8 relative">
-            <!-- Decorative concentric circles (radar/location feel) -->
-            <svg class="w-full max-w-[240px] aspect-square opacity-60 mb-4" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="100" cy="100" r="90" fill="none" stroke="#6366f1" stroke-opacity="0.08" stroke-width="0.5"/>
-              <circle cx="100" cy="100" r="70" fill="none" stroke="#6366f1" stroke-opacity="0.12" stroke-width="0.5"/>
-              <circle cx="100" cy="100" r="50" fill="none" stroke="#6366f1" stroke-opacity="0.18" stroke-width="0.5"/>
-              <circle cx="100" cy="100" r="30" fill="none" stroke="#6366f1" stroke-opacity="0.25" stroke-width="0.5"/>
-              <!-- Crosshairs -->
-              <line x1="100" y1="5" x2="100" y2="195" stroke="#6366f1" stroke-opacity="0.06" stroke-width="0.5"/>
-              <line x1="5" y1="100" x2="195" y2="100" stroke="#6366f1" stroke-opacity="0.06" stroke-width="0.5"/>
-              <!-- Pin -->
-              <g transform="translate(100, 90)">
-                <path d="M0-18c-6.6 0-12 5.4-12 12 0 9 12 22 12 22s12-13 12-22c0-6.6-5.4-12-12-12z" fill="#6366f1" fill-opacity="0.9"/>
-                <circle cx="0" cy="-6" r="4.5" fill="#0a0a0f"/>
-              </g>
-              <!-- Pulse ring -->
-              <circle cx="100" cy="90" r="8" fill="none" stroke="#06b6d4" stroke-opacity="0.4" stroke-width="1">
-                <animate attributeName="r" from="8" to="30" dur="2s" repeatCount="indefinite"/>
-                <animate attributeName="stroke-opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite"/>
-              </circle>
-            </svg>
-
-            <!-- Location text -->
-            <div class="text-center">
-              <div class="font-mono text-[0.6rem] md:text-[0.65rem] tracking-[0.25em] uppercase text-[#6366f1] mb-1">Location</div>
-              <div class="font-mono text-sm md:text-base text-[#f1f5f9] font-medium">{entry.location}</div>
+          <!-- Right: real map + location -->
+          <div class="map-panel flex flex-col relative">
+            <div class="flex-1 min-h-[200px]">
+              <MiniMap lat={entry.lat} lon={entry.lon} label={entry.location} />
             </div>
-
-            <!-- Coordinates -->
-            <div class="font-mono text-[0.5rem] md:text-[0.55rem] text-[#94a3b8]/40 mt-2 tracking-wider">
-              {entry.lat.toFixed(4)}°N {Math.abs(entry.lon).toFixed(4)}°W
+            <!-- Location overlay -->
+            <div class="absolute bottom-0 left-0 right-0 p-3 md:p-4" style="background: linear-gradient(transparent, rgba(10,10,15,0.95) 40%);">
+              <div class="font-mono text-[0.55rem] md:text-[0.6rem] tracking-[0.2em] uppercase text-[#6366f1] mb-0.5">
+                <svg class="inline-block w-3 h-3 mr-1 -mt-0.5" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                Location
+              </div>
+              <div class="font-mono text-xs md:text-sm text-[#f1f5f9]">{entry.location}</div>
             </div>
           </div>
 
