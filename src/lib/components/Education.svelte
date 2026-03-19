@@ -5,11 +5,11 @@
 
 <div class="flex flex-col h-full">
   <div class="px-4 sm:px-6 md:px-8 pt-4 md:pt-6 max-w-7xl mx-auto w-full">
-    <div class="font-mono text-[0.55rem] sm:text-[0.6rem] md:text-[0.65rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">05 // Education</div>
-    <h2 class="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-[#f1f5f9] mb-1">
+    <div class="font-mono tracking-[0.3em] uppercase text-[#6366f1] mb-2" style="font-size: clamp(0.6rem, 0.7vw, 0.75rem);">05 // Education</div>
+    <h2 class="font-semibold tracking-tight text-[#f1f5f9] mb-1" style="font-size: clamp(1.5rem, 2.5vw, 2.25rem);">
       Academic <span class="gradient-text">Foundation</span>
     </h2>
-    <div class="font-mono text-[0.55rem] md:text-[0.65rem] text-[#94a3b8] tracking-wide">
+    <div class="font-mono text-[#94a3b8] tracking-wide" style="font-size: clamp(0.6rem, 0.7vw, 0.75rem);">
       ← scroll through institutions →
     </div>
   </div>
@@ -29,8 +29,8 @@
                   aria-hidden="true"
                 >{entry.avatar}</div>
                 <div>
-                  <div class="font-semibold text-lg md:text-xl text-[#f1f5f9]">{entry.degree}</div>
-                  <div class="font-mono text-sm md:text-base tracking-wide text-[#6366f1]">
+                  <div class="font-semibold text-[#f1f5f9]" style="font-size: clamp(1.1rem, 1.3vw, 1.35rem);">{entry.degree}</div>
+                  <div class="font-mono tracking-wide text-[#6366f1]" style="font-size: clamp(0.875rem, 1vw, 1.05rem);">
                     {#if entry.schoolUrl}
                       @ <a href={entry.schoolUrl} target="_blank" rel="noopener noreferrer" class="hover:text-[#06b6d4] transition-colors duration-150 underline decoration-[rgba(99,102,241,0.3)] underline-offset-2 hover:decoration-[#06b6d4]">{entry.school}</a>
                     {:else}
@@ -39,14 +39,14 @@
                   </div>
                 </div>
               </div>
-              <div class="font-mono text-[0.65rem] md:text-[0.75rem] tracking-[0.1em] text-[#94a3b8] whitespace-nowrap pt-2">{entry.years}</div>
+              <div class="font-mono tracking-[0.1em] text-[#94a3b8] whitespace-nowrap pt-2" style="font-size: clamp(0.6rem, 0.7vw, 0.75rem);">{entry.years}</div>
             </div>
 
-            <p class="text-sm md:text-base text-[#94a3b8]/60 leading-relaxed mb-5 italic">
+            <p class="font-light text-[#94a3b8]/60 leading-relaxed mb-5 italic" style="font-size: clamp(0.875rem, 1vw, 1.05rem);">
               {entry.schoolDesc}
             </p>
 
-            <div class="text-sm md:text-base text-[#94a3b8] leading-relaxed mb-6">
+            <div class="font-light text-[#94a3b8] leading-[1.8] mb-6" style="font-size: clamp(0.875rem, 1vw, 1.05rem);">
               {entry.detail}
             </div>
 
