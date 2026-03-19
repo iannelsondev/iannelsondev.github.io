@@ -443,12 +443,12 @@
   }
 
   .hero-text-glass {
-    background: rgba(8, 8, 14, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(8, 8, 14, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border: 1px solid rgba(99, 102, 241, 0.12);
     box-shadow:
-      0 0 40px rgba(0, 0, 0, 0.4),
+      0 0 40px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.03);
   }
 
