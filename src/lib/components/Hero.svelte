@@ -18,6 +18,8 @@
     setRotationSpeed: (speed: number) => void;
     spotlightNode: (communityIndex: number) => void;
     clearSpotlight: () => void;
+    startTraversal: (seedCommunity: number) => void;
+    clearTraversal: () => void;
     getStats: () => { nodes: number; edges: number; communities: number; crossEdges: number };
     resetAll: () => void;
   }
@@ -27,10 +29,30 @@
   interface TourStepDef {
     title: string;
     description: string;
-    content: 'text' | 'legend' | 'communities' | 'edges' | 'inference';
+    content: 'text' | 'legend' | 'communities' | 'edges' | 'inference' | 'traversal';
     position: 'bottom-right' | 'bottom-left' | 'top-right';
     onEnter?: () => void;
     onLeave?: () => void;
+  }
+
+  // Traversal query animation state
+  let traversalQueryStage = $state(0);
+  let traversalTimer: ReturnType<typeof setInterval> | null = null;
+
+  function startTraversalAnimation() {
+    traversalQueryStage = 0;
+    traversalTimer = setInterval(() => {
+      if (traversalQueryStage < 5) traversalQueryStage++;
+      else {
+        // Loop back
+        traversalQueryStage = 0;
+      }
+    }, 1200);
+  }
+
+  function stopTraversalAnimation() {
+    if (traversalTimer) { clearInterval(traversalTimer); traversalTimer = null; }
+    traversalQueryStage = 0;
   }
 
   // Mock embedding vector for the node detail card
@@ -108,6 +130,25 @@
       },
       onLeave: () => {
         graphCtrl?.setRotationSpeed(0.0005);
+      },
+    },
+    {
+      title: 'Deterministic Graph Queries',
+      description: 'Traditional RAG asks an LLM to guess the answer — probabilistic, slow, and hallucination-prone. Graph traversal replaces guessing with walking: follow typed edges through structured knowledge for deterministic, auditable results at edge-device speed.',
+      content: 'traversal',
+      position: 'bottom-left',
+      onEnter: () => {
+        graphCtrl?.focusCommunity(0);
+        graphCtrl?.startTraversal(0);
+        graphCtrl?.highlightSolidEdges(true);
+        graphCtrl?.setRotationSpeed(0.001);
+        startTraversalAnimation();
+      },
+      onLeave: () => {
+        graphCtrl?.clearTraversal();
+        graphCtrl?.highlightSolidEdges(false);
+        graphCtrl?.setRotationSpeed(0.0005);
+        stopTraversalAnimation();
       },
     },
   ];
@@ -400,6 +441,26 @@
           let lastSolidCount = 0;
           let lastDashedCount = 0;
 
+          // Traversal animation: particles flowing along edges from seed
+          interface TraversalParticle {
+            mesh: THREE.Mesh;
+            mat: THREE.MeshBasicMaterial;
+            fromPos: THREE.Vector3;
+            toPos: THREE.Vector3;
+            progress: number;
+            speed: number;
+          }
+          const traversalParticles: TraversalParticle[] = [];
+          let traversalActive = false;
+          let traversalSeedCommunity = 0;
+          let traversalSpawnTimer = 0;
+          const particleGeo = new THREE.SphereGeometry(1, 8, 8);
+          const traversalGroup = new THREE.Group();
+          scene.add(traversalGroup);
+
+          // Dim non-traversal nodes
+          let traversalDimOthers = false;
+
           graphCtrl = {
             focusCommunity(index: number) {
               const z = zones[index % zones.length];
@@ -448,6 +509,21 @@
             clearSpotlight() {
               spotlightNodeRef = null;
             },
+            startTraversal(seedCommunity: number) {
+              traversalActive = true;
+              traversalSeedCommunity = seedCommunity;
+              traversalDimOthers = true;
+            },
+            clearTraversal() {
+              traversalActive = false;
+              traversalDimOthers = false;
+              // Clean up particles
+              for (const p of traversalParticles) {
+                traversalGroup.remove(p.mesh);
+                p.mat.dispose();
+              }
+              traversalParticles.length = 0;
+            },
             getStats() {
               return {
                 nodes: nodes.length,
@@ -467,6 +543,13 @@
               targetDashedOpacity = DEFAULT_DASHED_OPACITY;
               targetNodeScale = 1.0;
               spotlightNodeRef = null;
+              traversalActive = false;
+              traversalDimOthers = false;
+              for (const p of traversalParticles) {
+                traversalGroup.remove(p.mesh);
+                p.mat.dispose();
+              }
+              traversalParticles.length = 0;
             },
           };
 
@@ -629,6 +712,82 @@
               }
             }
 
+            // Traversal particle system
+            if (traversalActive) {
+              traversalSpawnTimer += 0.016;
+              // Spawn particles along edges from seed community
+              if (traversalSpawnTimer > 0.12) {
+                traversalSpawnTimer = 0;
+                // Find a random edge pair involving the seed community
+                const seedNodes = nodes.filter(n => n.community === traversalSeedCommunity);
+                if (seedNodes.length > 0) {
+                  const from = seedNodes[Math.floor(Math.random() * seedNodes.length)];
+                  // Find a neighbor
+                  let to: Node | null = null;
+                  for (const n of nodes) {
+                    if (n === from) continue;
+                    const dx = from.mesh.position.x - n.mesh.position.x;
+                    const dy = from.mesh.position.y - n.mesh.position.y;
+                    const dz = from.mesh.position.z - n.mesh.position.z;
+                    if (Math.sqrt(dx*dx + dy*dy + dz*dz) < EDGE_DIST) {
+                      to = n;
+                      break;
+                    }
+                  }
+                  if (to && traversalParticles.length < 30) {
+                    const pMat = new THREE.MeshBasicMaterial({
+                      color: 0x22d3ee,
+                      transparent: true,
+                      opacity: 1.0,
+                      blending: THREE.AdditiveBlending,
+                      depthWrite: false,
+                    });
+                    const pMesh = new THREE.Mesh(particleGeo, pMat);
+                    pMesh.scale.set(0.06, 0.06, 0.06);
+                    pMesh.position.copy(from.mesh.position);
+                    traversalGroup.add(pMesh);
+                    traversalParticles.push({
+                      mesh: pMesh,
+                      mat: pMat,
+                      fromPos: from.mesh.position.clone(),
+                      toPos: to.mesh.position.clone(),
+                      progress: 0,
+                      speed: 0.015 + Math.random() * 0.01,
+                    });
+                  }
+                }
+              }
+              // Animate particles
+              for (let i = traversalParticles.length - 1; i >= 0; i--) {
+                const p = traversalParticles[i];
+                p.progress += p.speed;
+                if (p.progress >= 1) {
+                  traversalGroup.remove(p.mesh);
+                  p.mat.dispose();
+                  traversalParticles.splice(i, 1);
+                  continue;
+                }
+                p.mesh.position.lerpVectors(p.fromPos, p.toPos, p.progress);
+                p.mat.opacity = p.progress < 0.2 ? p.progress / 0.2 : p.progress > 0.8 ? (1 - p.progress) / 0.2 : 1.0;
+                // Pulse glow size
+                const glow = 0.06 + Math.sin(p.progress * Math.PI) * 0.04;
+                p.mesh.scale.set(glow, glow, glow);
+              }
+
+              // Dim non-seed nodes during traversal
+              if (traversalDimOthers) {
+                for (const n of nodes) {
+                  if (n.community !== traversalSeedCommunity) {
+                    n.mat.opacity *= 0.92;
+                    n.glowMat.opacity *= 0.92;
+                  }
+                }
+              }
+            }
+
+            // Traversal group rotates with the rest
+            traversalGroup.rotation.y = communityGroup.rotation.y;
+
             // Gentle rotation + camera control
             communityGroup.rotation.y += rotSpeed;
             nodeGroup.rotation.y = communityGroup.rotation.y;
@@ -662,6 +821,11 @@
               z.wireMesh.geometry.dispose();
               (z.wireMesh.material as THREE.Material).dispose();
             }
+            for (const p of traversalParticles) {
+              traversalGroup.remove(p.mesh);
+              p.mat.dispose();
+            }
+            particleGeo.dispose();
             sphereGeo.dispose();
             solidGeo.dispose();
             solidMat.dispose();
@@ -956,6 +1120,83 @@
                 </div>
               </div>
             </div>
+          {:else if tourStep === 5}
+            <!-- Deterministic traversal query card -->
+            <div class="tour-detail tour-detail-top-right">
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Graph Query — Live Traversal</div>
+              <div class="text-[10px] mb-2 px-2 py-1.5 rounded" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(99, 102, 241, 0.08);">
+                <span class="text-[#475569] font-mono">Q:</span>
+                <span class="text-[#e2e8f0] font-mono"> "Who fought alongside Tony Stark?"</span>
+              </div>
+
+              <!-- Animated traversal steps -->
+              <div class="space-y-1 text-[10px] mb-2">
+                <div class="flex items-center gap-2 {traversalQueryStage >= 0 ? 'opacity-100' : 'opacity-30'}" style="transition: opacity 0.3s;">
+                  <span class="w-1.5 h-1.5 rounded-full shrink-0 {traversalQueryStage === 0 ? 'bg-[#22d3ee]' : 'bg-[#475569]'}"></span>
+                  <span class="text-[#94a3b8] flex-1">Resolve seed: "Tony Stark"</span>
+                  <span class="text-[#475569] tabular-nums font-mono">0.3ms</span>
+                </div>
+                <div class="flex items-center gap-2 {traversalQueryStage >= 1 ? 'opacity-100' : 'opacity-30'}" style="transition: opacity 0.3s;">
+                  <span class="w-1.5 h-1.5 rounded-full shrink-0 {traversalQueryStage === 1 ? 'bg-[#22d3ee]' : 'bg-[#475569]'}"></span>
+                  <span class="text-[#94a3b8] flex-1">Walk edges: FOUGHT_WITH, ALLIED</span>
+                  <span class="text-[#475569] tabular-nums font-mono">1.2ms</span>
+                </div>
+                <div class="flex items-center gap-2 {traversalQueryStage >= 2 ? 'opacity-100' : 'opacity-30'}" style="transition: opacity 0.3s;">
+                  <span class="w-1.5 h-1.5 rounded-full shrink-0 {traversalQueryStage === 2 ? 'bg-[#22d3ee]' : 'bg-[#475569]'}"></span>
+                  <span class="text-[#94a3b8] flex-1">Collect 1-hop neighbors</span>
+                  <span class="text-[#475569] tabular-nums font-mono">0.8ms</span>
+                </div>
+                <div class="flex items-center gap-2 {traversalQueryStage >= 3 ? 'opacity-100' : 'opacity-30'}" style="transition: opacity 0.3s;">
+                  <span class="w-1.5 h-1.5 rounded-full shrink-0 {traversalQueryStage === 3 ? 'bg-[#34d399]' : 'bg-[#475569]'}"></span>
+                  <span class="text-[#94a3b8] flex-1">Return 8 entities</span>
+                  <span class="text-[#34d399] tabular-nums font-mono">2.3ms total</span>
+                </div>
+              </div>
+
+              <!-- Result -->
+              {#if traversalQueryStage >= 3}
+                <div class="flex flex-wrap gap-1 mb-2" style="animation: detail-fade-in 0.3s ease-out;">
+                  {#each ['Steve Rogers', 'Thor', 'Natasha', 'Hulk', 'Hawkeye', 'War Machine', 'Spider-Man', 'Pepper Potts'] as name}
+                    <span class="detail-tag">{name}</span>
+                  {/each}
+                </div>
+              {/if}
+
+              <!-- Comparison -->
+              <div class="mt-2 pt-2" style="border-top: 1px solid rgba(99, 102, 241, 0.1);">
+                <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-1.5">Graph Traversal vs LLM Inference</div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2 text-[10px]">
+                    <span class="text-[#34d399] font-medium w-14">Graph</span>
+                    <div class="flex-1 h-2 rounded-full overflow-hidden" style="background: rgba(30, 41, 59, 0.5);">
+                      <div class="h-full rounded-full" style="width: 3%; background: #34d399;"></div>
+                    </div>
+                    <span class="text-[#34d399] tabular-nums font-mono w-14 text-right">2.3ms</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[10px]">
+                    <span class="text-[#f472b6] font-medium w-14">LLM</span>
+                    <div class="flex-1 h-2 rounded-full overflow-hidden" style="background: rgba(30, 41, 59, 0.5);">
+                      <div class="h-full rounded-full" style="width: 100%; background: #f472b6;"></div>
+                    </div>
+                    <span class="text-[#f472b6] tabular-nums font-mono w-14 text-right">~800ms</span>
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5 mt-2">
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Outcome</div>
+                    <div class="detail-stat-value text-[#34d399] text-[10px]">Deterministic</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Hallucination</div>
+                    <div class="detail-stat-value text-[#34d399] text-[10px]">0%</div>
+                  </div>
+                  <div class="detail-stat">
+                    <div class="detail-stat-label">Hardware</div>
+                    <div class="detail-stat-value text-[10px]">Any CPU</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           {/if}
 
           <!-- Tooltip -->
@@ -1058,6 +1299,25 @@
                     <span class="text-[9px] px-1.5 py-0.5 rounded" style="background: rgba(99, 102, 241, 0.12); color: #94a3b8;">{tag}</span>
                   {/each}
                 </div>
+              </div>
+
+            {:else if currentTourStep.content === 'traversal'}
+              <div class="mt-1 space-y-1.5 text-[10px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: #22d3ee; box-shadow: 0 0 6px rgba(34, 211, 238, 0.5);"></span>
+                  <span class="text-[#94a3b8]">Cyan particles = graph traversal query in flight</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0 bg-[#475569]"></span>
+                  <span class="text-[#94a3b8]">Dimmed nodes = outside query scope</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-[#34d399]"></span>
+                  <span class="text-[#94a3b8]">No LLM needed — typed edge walk, sub-3ms</span>
+                </div>
+                <p class="text-[#64748b] mt-1">
+                  The graph is the model. No token generation, no sampling temperature, no probabilistic output. Every query returns the same result every time — auditable, explainable, and fast enough for edge hardware without a GPU.
+                </p>
               </div>
             {/if}
 
