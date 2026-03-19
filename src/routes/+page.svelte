@@ -15,7 +15,7 @@
 <div class="section"><Skills /></div>
 <div class="section"><Projects /></div>
 <div class="section"><Education /></div>
-<div class="section fp-auto-height">
+<div class="section">
   <Blog />
   <Footer />
 </div>
