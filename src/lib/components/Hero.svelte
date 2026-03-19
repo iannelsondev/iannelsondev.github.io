@@ -768,14 +768,14 @@
           {#if tourStep === 0}
             <!-- Graph stats -->
             <div class="tour-detail tour-detail-top-left">
-              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Live Graph</div>
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Marvel Cinematic Universe — Knowledge Graph</div>
               <div class="grid grid-cols-2 gap-1.5">
                 <div class="detail-stat">
-                  <div class="detail-stat-label">Nodes</div>
+                  <div class="detail-stat-label">Entities</div>
                   <div class="detail-stat-value">{tourStats.nodes}</div>
                 </div>
                 <div class="detail-stat">
-                  <div class="detail-stat-label">Edges</div>
+                  <div class="detail-stat-label">Relationships</div>
                   <div class="detail-stat-value">{tourStats.edges}</div>
                 </div>
                 <div class="detail-stat">
@@ -788,7 +788,7 @@
                 </div>
               </div>
               <div class="flex flex-wrap gap-1 mt-2">
-                {#each ['Leiden', 'Force-directed', 'Additive blend'] as tag}
+                {#each ['PERSON', 'ORG', 'ARTIFACT', 'LOCATION', 'EVENT'] as tag}
                   <span class="detail-tag">{tag}</span>
                 {/each}
               </div>
@@ -799,28 +799,33 @@
               <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Community 0</div>
               <div class="flex items-center gap-2 mb-2">
                 <span class="w-3 h-3 rounded-sm shrink-0" style="background: rgba(96, 165, 250, 0.3); border: 1px solid rgba(96, 165, 250, 0.6);"></span>
-                <span class="text-xs text-[#e2e8f0]">Geopolitical Entities</span>
+                <span class="text-xs text-[#e2e8f0]">The Avengers</span>
               </div>
               <div class="grid grid-cols-2 gap-1.5 mb-2">
                 <div class="detail-stat">
                   <div class="detail-stat-label">Members</div>
-                  <div class="detail-stat-value">14</div>
+                  <div class="detail-stat-value">12</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Density</div>
-                  <div class="detail-stat-value">0.72</div>
+                  <div class="detail-stat-value">0.78</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Modularity</div>
-                  <div class="detail-stat-value">0.41</div>
+                  <div class="detail-stat-value">0.43</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Bridges</div>
-                  <div class="detail-stat-value">6</div>
+                  <div class="detail-stat-value">9</div>
                 </div>
               </div>
+              <div class="flex flex-wrap gap-1 mb-1.5">
+                {#each ['Tony Stark', 'Steve Rogers', 'Natasha Romanoff', 'Thor', 'Bruce Banner', 'Clint Barton'] as name}
+                  <span class="detail-tag">{name}</span>
+                {/each}
+              </div>
               <p class="text-[10px] text-[#64748b] leading-relaxed">
-                Tightly coupled subgraph — high internal edge density relative to external connections.
+                Highest bridge count — this community connects to Guardians, Asgard, and Wakanda clusters.
               </p>
             </div>
           {:else if tourStep === 2}
@@ -829,20 +834,20 @@
               <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Entity Node</div>
               <div class="flex items-center gap-2 mb-1.5">
                 <span class="w-2.5 h-2.5 rounded-full shrink-0 detail-pulse" style="background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);"></span>
-                <span class="text-xs text-[#e2e8f0] font-medium">National Security Agency</span>
+                <span class="text-xs text-[#e2e8f0] font-medium">Tony Stark</span>
               </div>
               <div class="grid grid-cols-2 gap-1.5 mb-2">
                 <div class="detail-stat">
                   <div class="detail-stat-label">Type</div>
-                  <div class="detail-stat-value text-[#fbbf24]">ORG</div>
+                  <div class="detail-stat-value text-[#fbbf24]">PERSON</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Degree</div>
-                  <div class="detail-stat-value">23</div>
+                  <div class="detail-stat-value">31</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Confidence</div>
-                  <div class="detail-stat-value">0.97</div>
+                  <div class="detail-stat-value">0.99</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Dimensions</div>
@@ -863,7 +868,7 @@
               </div>
               <div class="flex justify-between text-[8px] text-[#475569] mt-0.5">
                 <span>model: all-MiniLM-L6-v2</span>
-                <span>ONNX quantized</span>
+                <span>cosine sim → Steve Rogers: 0.82</span>
               </div>
             </div>
           {:else if tourStep === 3}
@@ -871,34 +876,34 @@
             <div class="tour-detail tour-detail-top-right">
               <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-2">Bridge Relationship</div>
               <div class="flex items-center gap-2 mb-2 text-[10px]">
-                <span class="text-[#60a5fa]">NSA</span>
-                <span class="w-4 h-px border-t border-dashed border-[#94a3b8] shrink-0"></span>
-                <span class="text-[#f472b6]">SIGINT Ops</span>
+                <span class="text-[#60a5fa]">Thor</span>
+                <span class="w-6 h-px border-t border-dashed border-[#94a3b8] shrink-0"></span>
+                <span class="text-[#34d399]">Guardians of the Galaxy</span>
               </div>
               <div class="grid grid-cols-2 gap-1.5 mb-2">
                 <div class="detail-stat">
                   <div class="detail-stat-label">Relation</div>
-                  <div class="detail-stat-value text-[#94a3b8]">OPERATES</div>
+                  <div class="detail-stat-value text-[#94a3b8]">ALLIED_WITH</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Weight</div>
-                  <div class="detail-stat-value">0.89</div>
+                  <div class="detail-stat-value">0.91</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Source Com.</div>
-                  <div class="detail-stat-value text-[#60a5fa]">0</div>
+                  <div class="detail-stat-value text-[#60a5fa]">Avengers</div>
                 </div>
                 <div class="detail-stat">
                   <div class="detail-stat-label">Target Com.</div>
-                  <div class="detail-stat-value text-[#f472b6]">1</div>
+                  <div class="detail-stat-value text-[#34d399]">Guardians</div>
                 </div>
               </div>
-              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-1">Extraction</div>
+              <div class="text-[9px] text-[#64748b] uppercase tracking-wider mb-1">Source Text</div>
               <p class="text-[10px] text-[#64748b] leading-relaxed italic">
-                "The NSA conducts signals intelligence operations across multiple theater commands..."
+                "Thor joined the Guardians aboard the Benatar after the events of Endgame, bridging the Asgardian and cosmic storylines..."
               </p>
               <div class="flex gap-1 mt-1.5">
-                {#each ['coreference', 'relation extraction', 'NER'] as tag}
+                {#each ['coreference', 'relation extraction', 'temporal'] as tag}
                   <span class="detail-tag">{tag}</span>
                 {/each}
               </div>
@@ -910,27 +915,27 @@
               <div class="space-y-1.5 text-[10px]">
                 <div class="flex items-center gap-2">
                   <span class="detail-pipeline-dot" style="background: #06b6d4;"></span>
-                  <span class="text-[#94a3b8] flex-1">Entity extraction</span>
+                  <span class="text-[#94a3b8] flex-1">NER: extract "Tony Stark", "Thanos"</span>
                   <span class="text-[#475569] tabular-nums">~240ms</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="detail-pipeline-dot" style="background: #22d3ee;"></span>
-                  <span class="text-[#94a3b8] flex-1">Embedding generation</span>
+                  <span class="text-[#94a3b8] flex-1">Embed entities → 384-dim vectors</span>
                   <span class="text-[#475569] tabular-nums">~85ms</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="detail-pipeline-dot" style="background: #a78bfa;"></span>
-                  <span class="text-[#94a3b8] flex-1">Entity resolution</span>
+                  <span class="text-[#94a3b8] flex-1">Resolve "Iron Man" → "Tony Stark"</span>
                   <span class="text-[#475569] tabular-nums">~180ms</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="detail-pipeline-dot" style="background: #34d399;"></span>
-                  <span class="text-[#94a3b8] flex-1">Graph upsert</span>
+                  <span class="text-[#94a3b8] flex-1">Upsert nodes + DEFEATED edge</span>
                   <span class="text-[#475569] tabular-nums">~12ms</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="detail-pipeline-dot" style="background: #fbbf24;"></span>
-                  <span class="text-[#94a3b8] flex-1">Community recompute</span>
+                  <span class="text-[#94a3b8] flex-1">Leiden: recompute communities</span>
                   <span class="text-[#475569] tabular-nums">~350ms</span>
                 </div>
               </div>
