@@ -44,8 +44,8 @@ export interface MetaCard {
 }
 
 export const bio: string[] = [
-  'I build things that don\'t exist yet. Over two decades across the Intelligence Community, the military, cybersecurity, insurance, and AI, the constant has been the same — find the problem no one knows how to frame and build what solves it. I don\'t follow domains. I follow the edge.',
-  'Twenty-six years in and I\'ve kept my hands on the keyboard by design. I can operate at any scale, from a team of one to organizations of thousands, but I do my best work building — staying ahead by doing. Right now that means autonomous multi-agent systems, on-prem AI rivaling frontier models, knowledge graphs that pull signal from noise, and inference engines that run where the data lives.',
+  'I\'m an AI systems architect and CTO with 26 years across the Intelligence Community, the U.S. Army, cybersecurity, and private-sector AI — currently leading R&D at Clarity Innovations and building Talon Black, an autonomous risk intelligence platform. The constant has been the same: find the problem no one knows how to frame and build what solves it. I don\'t follow domains. I follow the edge.',
+  'I\'ve kept my hands on the keyboard by design. I can operate at any scale, from a team of one to organizations of thousands, but I do my best work building — staying ahead by doing. Right now that means autonomous multi-agent swarms, on-prem large language model inference rivaling frontier models, retrieval-augmented generation pipelines, knowledge graphs that pull signal from noise, and edge inference engines that run where the data lives.',
   'Off the clock — married over twenty years, raising two sons headed toward military commissions, two dogs running the house, and a lifelong metalhead. Covered in tattoos that aren\'t for everyone, but they\'re for me. I believe we\'re accelerating toward something most people aren\'t ready to talk about yet. If you\'re building at the boundary of what\'s possible, we should connect.'
 ];
 
@@ -273,7 +273,7 @@ export const projects: ProjectEntry[] = [
   {
     title: 'Talon Black',
     description: 'Autonomous risk intelligence platform. Multi-agent swarm architecture for continuous threat analysis, automated reporting, and derived value generation. On-prem inference with open-weight models, graph-enabled reasoning, edge deployment.',
-    link: 'https://talonblack.io',
+    link: 'https://www.talonblack.com',
     linkLabel: 'Visit Talon Black'
   },
   {
