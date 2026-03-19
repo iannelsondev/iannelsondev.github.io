@@ -1,12 +1,26 @@
 <script lang="ts">
   import ScrollReveal from './ScrollReveal.svelte';
   import { projects } from '$lib/data/content';
+
+  interface Props {
+    headingId?: string;
+  }
+
+  let { headingId = 'heading-projects' }: Props = $props();
 </script>
 
 <div class="flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
   <div class="max-w-6xl mx-auto w-full">
-    <div class="font-mono tracking-[0.3em] uppercase text-[#6366f1] mb-2" style="font-size: clamp(0.6rem, 0.7vw, 0.75rem);">04 // Projects</div>
-    <h2 class="font-semibold tracking-tight text-[#f1f5f9] mb-6" style="font-size: clamp(1.5rem, 2.5vw, 2.25rem);">
+    <div
+      class="font-mono tracking-[0.3em] uppercase mb-2"
+      style="font-size: clamp(0.6rem, 0.7vw, 0.75rem); color: var(--indigo-accessible);"
+      aria-hidden="true"
+    >04 // Projects</div>
+    <h2
+      id={headingId}
+      class="font-semibold tracking-tight text-[#f1f5f9] mb-6"
+      style="font-size: clamp(1.5rem, 2.5vw, 2.25rem);"
+    >
       Things I've <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Shipped</span>
     </h2>
 
@@ -26,14 +40,21 @@
                 style="font-size: clamp(0.875rem, 1.1vw, 1.05rem); background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"
               >{project.title}</h3>
               {#if project.link}
+                <!--
+                  WCAG 2.4.4 — Link purpose is conveyed by aria-label which
+                  includes the project title. The arrow glyph (↗) is decorative.
+                -->
                 <a
                   href={project.link}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="text-sm text-[#06b6d4] hover:opacity-100 transition-opacity duration-200 opacity-70"
-                  aria-label={project.linkLabel ?? `Visit ${project.title}`}
+                  aria-label={project.linkLabel ?? `Visit ${project.title} (opens in new tab)`}
                   style="-webkit-text-fill-color: #06b6d4;"
-                >↗</a>
+                  aria-hidden="false"
+                >
+                  <span aria-hidden="true">↗</span>
+                </a>
               {/if}
             </div>
             <p class="font-light text-[#94a3b8] leading-[1.8]" style="font-size: clamp(0.875rem, 1vw, 1.05rem);">{project.description}</p>

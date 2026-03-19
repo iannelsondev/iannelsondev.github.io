@@ -1,11 +1,25 @@
 <script lang="ts">
   import ScrollReveal from './ScrollReveal.svelte';
+
+  interface Props {
+    headingId?: string;
+  }
+
+  let { headingId = 'heading-blog' }: Props = $props();
 </script>
 
 <div class="flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
   <div class="max-w-6xl mx-auto w-full">
-    <div class="font-mono tracking-[0.3em] uppercase text-[#6366f1] mb-2" style="font-size: clamp(0.6rem, 0.7vw, 0.75rem);">06 // Community</div>
-    <h2 class="font-semibold tracking-tight text-[#f1f5f9] mb-6" style="font-size: clamp(1.5rem, 2.5vw, 2.25rem);">
+    <div
+      class="font-mono tracking-[0.3em] uppercase mb-2"
+      style="font-size: clamp(0.6rem, 0.7vw, 0.75rem); color: var(--indigo-accessible);"
+      aria-hidden="true"
+    >06 // Community</div>
+    <h2
+      id={headingId}
+      class="font-semibold tracking-tight text-[#f1f5f9] mb-6"
+      style="font-size: clamp(1.5rem, 2.5vw, 2.25rem);"
+    >
       <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Community</span>
     </h2>
 

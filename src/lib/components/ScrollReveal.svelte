@@ -13,7 +13,21 @@
   let visible = $state(!browser);
   let mounted = $state(false);
 
+  // WCAG 2.3.3 — prefers-reduced-motion: when the user requests reduced
+  // motion, skip the fade/translate animation entirely by treating the
+  // element as immediately visible.
+  let reducedMotion = $state(false);
+
   onMount(() => {
+    reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reducedMotion) {
+      // Show content immediately; no animation at all.
+      visible = true;
+      mounted = true;
+      return;
+    }
+
     visible = false;
     mounted = true;
     const obs = new IntersectionObserver(([e]) => {
@@ -30,11 +44,11 @@
 <div
   bind:this={el}
   class="transition-[opacity,transform] duration-700 ease-out"
-  class:opacity-0={mounted && !visible}
-  class:translate-y-8={mounted && !visible}
-  class:opacity-100={!mounted || visible}
-  class:translate-y-0={!mounted || visible}
-  style="transition-delay: {delay}ms"
+  class:opacity-0={mounted && !visible && !reducedMotion}
+  class:translate-y-8={mounted && !visible && !reducedMotion}
+  class:opacity-100={!mounted || visible || reducedMotion}
+  class:translate-y-0={!mounted || visible || reducedMotion}
+  style="transition-delay: {reducedMotion ? '0ms' : delay + 'ms'}"
 >
   {@render children()}
 </div>

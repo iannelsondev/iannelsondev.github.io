@@ -7,6 +7,9 @@
 :root {
   --bg: #0a0a0f;
   --indigo: #6366f1;
+  /* Lightened from #6366f1 (4.42:1) to #7c7ff4 to pass 4.5:1 AA on dark bg.
+     WCAG 1.4.3: small text requires 4.5:1. Calculated: #7c7ff4 on #0a0a0f ≈ 5.3:1 */
+  --indigo-accessible: #7c7ff4;
   --cyan: #06b6d4;
   --text: #f1f5f9;
   --muted: #94a3b8;
@@ -30,6 +33,50 @@ body {
   font-weight: 300;
   font-size: clamp(0.875rem, 1vw, 1.05rem);
   line-height: 1.8;
+}
+
+/* ============================================================
+   WCAG 2.4.1 — Skip navigation link (Bypass Blocks)
+   Visually hidden until focused; positions above all content.
+   ============================================================ */
+.skip-link {
+  position: fixed;
+  top: -9999px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  background: #0a0a0f;
+  color: #f1f5f9;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid #7c7ff4;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  outline: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ============================================================
+   WCAG 2.4.7 — Focus Visible
+   Apply a clear, high-contrast focus ring to all interactive
+   elements. The :focus-visible selector avoids showing outlines
+   on mouse clicks while still serving keyboard users.
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid #7c7ff4;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Remove default outline only where :focus-visible is supported */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 ::selection {
@@ -56,6 +103,27 @@ body {
   }
   ::-webkit-scrollbar {
     width: 2px;
+  }
+}
+
+/* ============================================================
+   WCAG 2.3.3 / SC 2.3.1 — prefers-reduced-motion
+   Disable all non-essential animation for users who request it.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Prevent the hex background from floating */
+  .hex-bg,
+  .hex-bg :global(svg) {
+    animation: none !important;
   }
 }
 
@@ -94,4 +162,10 @@ body {
 }
 .fp-controlArrow.fp-next::after {
   transform: translate(-65%, -50%) rotate(-45deg) !important;
+}
+
+/* fullPage.js control arrow focus — WCAG 2.4.7 */
+.fp-controlArrow:focus-visible {
+  outline: 2px solid #7c7ff4 !important;
+  outline-offset: 3px !important;
 }

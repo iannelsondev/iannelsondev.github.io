@@ -9,13 +9,36 @@
   import Footer from '$lib/components/Footer.svelte';
 </script>
 
-<div class="section fp-auto-height-responsive"><Hero /></div>
-<div class="section"><About /></div>
-<div class="section"><Experience /></div>
-<div class="section"><Skills /></div>
-<div class="section"><Projects /></div>
-<div class="section"><Education /></div>
-<div class="section">
-  <Blog />
+<!--
+  WCAG 1.3.1 — Each fullPage.js section is a <section> landmark with an
+  aria-labelledby pointing at the visible heading inside it, giving screen
+  reader users a navigable list of page regions.
+-->
+<section class="section fp-auto-height-responsive" aria-label="Home — Introduction">
+  <Hero />
+</section>
+
+<section class="section" aria-labelledby="heading-about">
+  <About headingId="heading-about" />
+</section>
+
+<section class="section" aria-labelledby="heading-experience">
+  <Experience headingId="heading-experience" />
+</section>
+
+<section class="section" aria-labelledby="heading-skills">
+  <Skills headingId="heading-skills" />
+</section>
+
+<section class="section" aria-labelledby="heading-projects">
+  <Projects headingId="heading-projects" />
+</section>
+
+<section class="section" aria-labelledby="heading-education">
+  <Education headingId="heading-education" />
+</section>
+
+<section class="section" aria-labelledby="heading-blog">
+  <Blog headingId="heading-blog" />
   <Footer />
-</div>
+</section>

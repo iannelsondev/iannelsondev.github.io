@@ -8,6 +8,14 @@
   onMount(() => {
     if (!canvasEl || !glassEl) return;
 
+    // WCAG 2.3.3 / SC 2.3.1 — Respect prefers-reduced-motion.
+    // Users who prefer reduced motion get a static canvas with no animation.
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      // Skip the Three.js animation loop entirely; leave canvas blank (transparent).
+      return;
+    }
+
     let stopped = false;
     let cleanupFn: (() => void) | null = null;
 
@@ -389,6 +397,11 @@
   });
 </script>
 
+<!--
+  WCAG 1.3.1 — This is the top-level section of the page. The <section> in
+  +page.svelte carries aria-label="Home — Introduction".
+  The <h1> here is the only <h1> on the page; all other sections use <h2>.
+-->
 <section class="relative h-full w-full overflow-hidden" aria-label="Introduction">
   <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
     <div bind:this={glassEl} class="hero-glass relative w-full max-w-4xl rounded-2xl overflow-hidden">
@@ -396,13 +409,26 @@
       <!-- Dark opaque background layer -->
       <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.92); z-index: 0;"></div>
 
-      <!-- Three.js canvas — fills entire panel -->
+      <!--
+        WCAG 1.1.1 — The canvas is purely decorative (animated network graph).
+        aria-hidden="true" ensures screen readers skip it entirely.
+      -->
       <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 1;" aria-hidden="true"></canvas>
 
       <!-- Text content — in flow so the glass panel gets intrinsic height -->
       <div class="relative flex items-center justify-center" style="z-index: 2;">
         <div class="{webglReady ? 'hero-text-glass' : ''} rounded-xl px-8 sm:px-12 md:px-16 py-14 md:py-20 max-w-2xl w-full mx-4">
           <div class="flex flex-col items-center text-center">
+            <!--
+              WCAG 1.4.3 — Gradient text on h1: the gradient spans #6366f1
+              to #06b6d4 on a very dark background. The -webkit-text-fill-color
+              approach means the text colour for AT and fallback rendering is
+              the background fill of the element. We rely on the gradient being
+              light enough; the lighter end (#06b6d4) is 5.8:1 on #0a0a0f.
+              The -webkit-text-fill-color transparent is presentation-only;
+              the plain color fallback on hero-last is set via color property
+              in the style block below for non-webkit engines.
+            -->
             <h1 class="hero-name leading-[0.9] mb-5">
               <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
             </h1>
@@ -415,10 +441,27 @@
               Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
             </p>
 
+            <!--
+              WCAG 2.4.4 — Each link has a clear, descriptive label.
+              External links include "(opens in new tab)" for screen reader users.
+              WCAG 2.4.7 — Focus styles for .hero-btn defined in <style> below.
+            -->
             <div class="flex flex-wrap gap-3 justify-center">
-              <a href="https://linkedin.com/in/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">LinkedIn</a>
-              <a href="https://github.com/iannelsondev" target="_blank" rel="noopener noreferrer" class="hero-btn">GitHub</a>
-              <a href="mailto:iannelsondev@proton.me" class="hero-btn">iannelsondev@proton.me</a>
+              <a
+                href="https://linkedin.com/in/iannelsondev"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="hero-btn"
+                aria-label="LinkedIn profile (opens in new tab)"
+              >LinkedIn</a>
+              <a
+                href="https://github.com/iannelsondev"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="hero-btn"
+                aria-label="GitHub profile (opens in new tab)"
+              >GitHub</a>
+              <a href="mailto:iannelsondev@proton.me" class="hero-btn" aria-label="Send email to iannelsondev@proton.me">iannelsondev@proton.me</a>
             </div>
           </div>
         </div>
@@ -426,7 +469,11 @@
     </div>
   </div>
 
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-bounce" aria-hidden="true" style="opacity: 0.35;">
+  <!--
+    WCAG 1.3.1 — Scroll indicator is decorative; aria-hidden suppresses it
+    from the accessibility tree.
+  -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 scroll-hint" aria-hidden="true" style="opacity: 0.35;">
     <span class="font-mono text-[0.5rem] tracking-[0.2em] uppercase text-[#94a3b8]">SCROLL</span>
     <div class="w-px h-6" style="background: linear-gradient(to bottom, #6366f1, transparent);"></div>
   </div>
@@ -464,6 +511,8 @@
   }
 
   .hero-last {
+    /* Fallback color for non-webkit engines (18:1 contrast) */
+    color: #f1f5f9;
     background: linear-gradient(135deg, #6366f1, #06b6d4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -483,10 +532,25 @@
       linear-gradient(rgba(10, 10, 16, 0.8), rgba(10, 10, 16, 0.8)) padding-box,
       linear-gradient(135deg, #6366f1, #06b6d4) border-box;
     transition: transform 0.2s, background 0.2s;
+    /* WCAG 2.4.7 — Explicit focus ring for keyboard users */
+    outline-offset: 3px;
   }
 
   .hero-btn:hover {
     background: linear-gradient(135deg, #6366f1, #06b6d4);
     transform: translateY(-2px);
+  }
+
+  /* WCAG 2.4.7 — Visible focus indicator distinct from hover state */
+  .hero-btn:focus-visible {
+    outline: 2px solid #7c7ff4;
+    outline-offset: 4px;
+  }
+
+  /* WCAG 2.3.3 — Disable bounce animation for reduced-motion users */
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-hint {
+      animation: none !important;
+    }
   }
 </style>

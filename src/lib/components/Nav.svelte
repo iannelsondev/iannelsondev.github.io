@@ -26,6 +26,10 @@
     mobileOpen = false;
   }
 
+  function closeMobileNav() {
+    mobileOpen = false;
+  }
+
   onMount(() => {
     // Set initial active from URL hash
     const hash = window.location.hash.replace('#', '').split('/')[0];
@@ -45,38 +49,56 @@
       if (h) activeSection = h;
     }
 
+    // WCAG 2.1.2 — Allow Escape key to close the mobile nav, releasing
+    // keyboard focus from the trap.
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && mobileOpen) {
+        mobileOpen = false;
+      }
+    }
+
     window.addEventListener('fp-section-change', onSectionChange);
     window.addEventListener('hashchange', onHashChange);
+    window.addEventListener('keydown', onKeyDown);
     return () => {
       window.removeEventListener('fp-section-change', onSectionChange);
       window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('keydown', onKeyDown);
     };
   });
 </script>
 
-<!-- Mobile hamburger button -->
+<!--
+  WCAG 2.4.7 — Mobile hamburger button.
+  Using a <button> element gives native keyboard access (Enter/Space),
+  proper focus management, and correct role announcement to AT.
+-->
 <button
   class="md:hidden fixed top-4 left-4 z-[200] flex flex-col justify-center items-center w-11 h-11 rounded border border-[rgba(99,102,241,0.2)] bg-[rgba(10,10,15,0.9)] backdrop-blur-sm cursor-pointer transition-colors duration-200 hover:border-[rgba(99,102,241,0.5)]"
-  aria-label="Toggle navigation"
+  aria-label="{mobileOpen ? 'Close' : 'Open'} navigation menu"
   aria-expanded={mobileOpen}
+  aria-controls="sidebar-nav"
   onclick={() => mobileOpen = !mobileOpen}
-  onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mobileOpen = !mobileOpen; } }}
 >
   <span class="block w-5 h-px bg-[#94a3b8] transition-transform duration-200 {mobileOpen ? 'rotate-45 translate-y-[3px]' : ''}"></span>
   <span class="block w-5 h-px bg-[#94a3b8] my-1 transition-opacity duration-200 {mobileOpen ? 'opacity-0' : ''}"></span>
   <span class="block w-5 h-px bg-[#94a3b8] transition-transform duration-200 {mobileOpen ? '-rotate-45 -translate-y-[7px]' : ''}"></span>
 </button>
 
-<!-- Sidebar nav -->
+<!--
+  WCAG 1.3.1 — <nav> with aria-label distinguishes this from the footer nav.
+  id="sidebar-nav" is referenced by aria-controls on the hamburger button.
+-->
 <nav
+  id="sidebar-nav"
   class="nav-sidebar fixed top-0 left-0 h-full z-[100] flex flex-col
     bg-[rgba(10,10,15,0.9)] backdrop-blur-xl border-r border-[rgba(99,102,241,0.1)]
     transition-transform duration-300 ease-out
     max-md:-translate-x-full {mobileOpen ? 'max-md:translate-x-0' : ''}"
   aria-label="Primary navigation"
 >
-  <!-- Brand -->
-  <div class="nav-brand">
+  <!-- Brand — presentational, not a heading, to avoid disrupting heading hierarchy -->
+  <div class="nav-brand" aria-hidden="true">
     <div class="font-mono font-bold tracking-[0.18em] text-[#f1f5f9] uppercase">
       IAN NELSON
     </div>
@@ -86,17 +108,22 @@
   </div>
 
   <!-- Nav links -->
-  <ul class="flex flex-col flex-1 nav-links" role="list">
+  <ul class="flex flex-col flex-1 nav-links">
     {#each navLinks as link}
       <li>
+        <!--
+          WCAG 4.1.2 — aria-current="page" marks the active section link
+          so AT users know which section is currently visible.
+        -->
         <a
           href={link.href}
           class="flex items-center font-mono tracking-wider uppercase transition-[color,background-color,border-color] duration-200 group nav-link
             border-l-2 {activeSection === link.href.replace('#', '') ? 'border-[#6366f1] text-[#f1f5f9] bg-[rgba(99,102,241,0.08)]' : 'border-transparent text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[rgba(99,102,241,0.05)]'}"
+          aria-current={activeSection === link.href.replace('#', '') ? 'true' : undefined}
           onclick={(e) => handleNavClick(e, link.href, link.index)}
           onkeydown={(e) => handleNavClick(e, link.href, link.index)}
         >
-          <span class="text-[#6366f1] opacity-50 nav-num">{link.num}</span>
+          <span class="nav-num" aria-hidden="true" style="color: var(--indigo-accessible); opacity: 0.7;">{link.num}</span>
           {link.label}
         </a>
       </li>
@@ -110,33 +137,37 @@
       target="_blank"
       rel="noopener noreferrer"
       class="font-mono tracking-widest uppercase text-[#94a3b8] hover:text-[#6366f1] transition-colors duration-200"
-      aria-label="LinkedIn"
+      aria-label="LinkedIn profile (opens in new tab)"
     >LI</a>
     <a
       href="https://github.com/iannelsondev"
       target="_blank"
       rel="noopener noreferrer"
       class="font-mono tracking-widest uppercase text-[#94a3b8] hover:text-[#6366f1] transition-colors duration-200"
-      aria-label="GitHub"
+      aria-label="GitHub profile (opens in new tab)"
     >GH</a>
     <a
       href="mailto:iannelsondev@proton.me"
       class="font-mono tracking-widest uppercase text-[#94a3b8] hover:text-[#6366f1] transition-colors duration-200"
-      aria-label="Email"
+      aria-label="Send email to iannelsondev@proton.me"
     >ML</a>
   </div>
 </nav>
 
-<!-- Mobile overlay backdrop -->
+<!--
+  WCAG 2.1.2 / 2.1.1 — Mobile overlay backdrop.
+  Using a <button> instead of role="button" on a <div> provides native
+  keyboard activation. tabindex="-1" keeps it out of the tab order since
+  Escape (handled globally) is the intended dismissal path; clicking the
+  dark backdrop is a pointer shortcut only.
+-->
 {#if mobileOpen}
-  <div
-    class="md:hidden fixed inset-0 z-[90] bg-black/50"
-    onclick={() => mobileOpen = false}
-    onkeydown={(e) => { if (e.key === 'Escape') mobileOpen = false; }}
-    role="button"
+  <button
+    class="md:hidden fixed inset-0 z-[90] bg-black/50 cursor-default border-0 p-0"
+    onclick={closeMobileNav}
     tabindex="-1"
-    aria-label="Close navigation"
-  ></div>
+    aria-hidden="true"
+  ></button>
 {/if}
 
 <style>

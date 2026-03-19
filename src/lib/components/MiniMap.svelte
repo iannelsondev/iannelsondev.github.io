@@ -42,7 +42,7 @@
     // Custom indigo pin marker
     const pinIcon = L.divIcon({
       className: '',
-      html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
+      html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="#6366f1" fill-opacity="0.9"/>
         <circle cx="14" cy="14" r="5" fill="#0a0a0f"/>
         <circle cx="14" cy="14" r="3" fill="#06b6d4" fill-opacity="0.8"/>
@@ -71,4 +71,15 @@
   });
 </script>
 
-<div bind:this={mapEl} class="w-full h-full min-h-[200px]" aria-label="Map showing {label}"></div>
+<!--
+  WCAG 1.1.1 — The Leaflet map is an interactive widget but in this context
+  it is used as a decorative location indicator (no user interaction enabled).
+  role="img" with aria-label communicates the purpose to screen readers.
+  The visible location name in the parent overlay provides the same info in text.
+-->
+<div
+  bind:this={mapEl}
+  class="w-full h-full min-h-[200px]"
+  role="img"
+  aria-label="Map showing location: {label}"
+></div>
