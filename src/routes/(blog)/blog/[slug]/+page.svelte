@@ -1,12 +1,23 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import AudioNarrator from '$lib/components/AudioNarrator.svelte';
-  import type { BlogPost } from '$lib/blog/types';
+  import type { BlogSection } from '$lib/blog/types';
   import type { Component } from 'svelte';
+
+  interface PostData {
+    slug: string;
+    title: string;
+    date: string;
+    summary: string;
+    coverImage?: string;
+    tags: string[];
+    readingTime: number;
+    sections: BlogSection[];
+  }
 
   interface Props {
     data: {
-      post: BlogPost;
+      post: PostData;
       PostComponent: Component;
     };
   }
@@ -138,7 +149,9 @@
 
   <!-- Post content -->
   <div class="prose-blog">
-    <data.PostComponent />
+    {#if data.PostComponent}
+      <data.PostComponent />
+    {/if}
   </div>
 
   <!-- Back to Community -->
