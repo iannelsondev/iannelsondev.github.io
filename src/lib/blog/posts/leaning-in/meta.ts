@@ -6,7 +6,7 @@ export const leaningIn: BlogPost = {
   date: '2026-03-19',
   summary:
     'How a catastrophic vision loss became the catalyst for building autonomous AI systems — and why the future of accessibility is local-first intelligence.',
-  // coverImage: '/blog/leaning-in/cover.webp', // TODO: add cover image
+  coverImage: '/blog/leaning-in/cover.svg',
   tags: ['AI', 'Accessibility', 'Autonomous Systems', 'Personal'],
   readingTime: 12,
   sections: [
