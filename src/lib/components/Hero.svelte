@@ -1580,26 +1580,28 @@
   /* --- Info toggle button --- */
   .info-toggle {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+    top: 1rem;
+    right: 1rem;
     z-index: 10;
-    width: 2rem;
-    height: 2rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: 50%;
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    background: rgba(10, 10, 16, 0.7);
+    border: 1.5px solid rgba(99, 102, 241, 0.35);
+    background: rgba(10, 10, 16, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.3s, background 0.3s;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
   }
 
   .info-toggle:hover {
     border-color: rgba(99, 102, 241, 0.6);
     background: rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
   }
 
   .info-toggle:focus-visible {
@@ -1609,9 +1611,9 @@
 
   .info-toggle-icon {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #94a3b8;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #b4b6f8;
     line-height: 1;
   }
 

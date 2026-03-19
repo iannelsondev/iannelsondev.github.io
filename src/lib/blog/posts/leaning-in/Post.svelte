@@ -28,7 +28,7 @@
 <h2 id="the-overhaul">The Overhaul</h2>
 
 <p>
-  Everything changed. Four Dell 32-inch 4K monitors running HiDPI scaling, plus a 55-inch Samsung center display at 4K60. Two Stream Decks for quick-launch workflows. Fonts cranked. Contrast cranked. Dark mode everywhere. Every tool re-evaluated against one question: <em>can I actually use this?</em>
+  Everything changed. Three Dell 32-inch 4K monitors running HiDPI scaling, plus a 55-inch Samsung center display at 4K60. Two Stream Decks for quick-launch workflows. Fonts cranked. Contrast cranked. Dark mode everywhere. Every tool re-evaluated against one question: <em>can I actually use this?</em>
 </p>
 
 <p>
