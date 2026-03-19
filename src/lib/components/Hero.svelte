@@ -10,7 +10,6 @@
     let stopped = false;
     let cleanupFn: (() => void) | null = null;
 
-    // Wait for the container to have dimensions (fullPage.js needs a tick)
     function waitForSize(cb: () => void) {
       const check = () => {
         if (stopped) return;
@@ -39,125 +38,175 @@
           const renderer = new THREE.WebGLRenderer({
             canvas: canvasEl,
             alpha: true,
-            antialias: false,
+            antialias: true,
           });
           renderer.setPixelRatio(dpr);
           renderer.setSize(w, h, false);
 
           const scene = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
-          camera.position.z = 8;
+          camera.position.z = 12;
 
-          // --- Glow texture via canvas gradient ---
-          function createGlowTexture(): THREE.CanvasTexture {
-            const size = 128;
-            const c = document.createElement('canvas');
-            c.width = size;
-            c.height = size;
-            const ctx = c.getContext('2d')!;
-            const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-            gradient.addColorStop(0,   'rgba(255,255,255,1)');
-            gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
-            gradient.addColorStop(0.5, 'rgba(99,102,241,0.4)');
-            gradient.addColorStop(1,   'rgba(99,102,241,0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, size, size);
-            return new THREE.CanvasTexture(c);
+          // Community palette (from VIPR)
+          const COMMUNITY_PALETTE = [
+            0x60a5fa, 0xf472b6, 0x34d399, 0xfbbf24, 0xa78bfa, 0xfb923c,
+          ];
+          const NUM_COMMUNITIES = 4;
+
+          // --- Community hulls (VIPR-style bounding cubes) ---
+          interface CommunityZone {
+            id: number;
+            color: number;
+            center: THREE.Vector3;
+            fillMesh: THREE.Mesh;
+            wireMesh: THREE.LineSegments;
           }
 
-          const glowTexture = createGlowTexture();
+          const communityGroup = new THREE.Group();
+          scene.add(communityGroup);
 
-          const INDIGO = 0x6366f1;
-          const CYAN   = 0x06b6d4;
-          const WHITE  = 0xffffff;
-          // Weighted toward indigo/cyan — white used for small accent nodes
-          const COLORS = [INDIGO, INDIGO, INDIGO, CYAN, CYAN, WHITE];
+          const zones: CommunityZone[] = [];
+          const zonePositions = [
+            new THREE.Vector3(-3.5, 1.5, -1),
+            new THREE.Vector3(3, 2, 0.5),
+            new THREE.Vector3(-2, -2.5, 0),
+            new THREE.Vector3(3.5, -1.8, -0.5),
+          ];
 
-          // --- Edges ---
-          const MAX_EDGES = 400;
-          const edgeArr = new Float32Array(MAX_EDGES * 6);
-          const edgeGeo = new THREE.BufferGeometry();
-          edgeGeo.setAttribute('position', new THREE.BufferAttribute(edgeArr, 3));
-          edgeGeo.setDrawRange(0, 0);
-          const edgeMat = new THREE.LineBasicMaterial({
-            color: INDIGO,
-            transparent: true,
-            opacity: 0.4,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          });
-          scene.add(new THREE.LineSegments(edgeGeo, edgeMat));
+          for (let c = 0; c < NUM_COMMUNITIES; c++) {
+            const color = COMMUNITY_PALETTE[c % COMMUNITY_PALETTE.length];
+            const size = 2.5 + Math.random() * 1.5;
+            const geo = new THREE.BoxGeometry(size, size, size);
 
+            // Transparent fill
+            const fillMat = new THREE.MeshBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0.04,
+              depthWrite: false,
+            });
+            const fillMesh = new THREE.Mesh(geo, fillMat);
+            fillMesh.position.copy(zonePositions[c]);
+            communityGroup.add(fillMesh);
+
+            // Wireframe edges
+            const edgesGeo = new THREE.EdgesGeometry(geo);
+            const wireMat = new THREE.LineBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0.15,
+            });
+            const wireMesh = new THREE.LineSegments(edgesGeo, wireMat);
+            wireMesh.position.copy(zonePositions[c]);
+            communityGroup.add(wireMesh);
+
+            zones.push({ id: c, color, center: zonePositions[c], fillMesh, wireMesh });
+          }
+
+          // --- Nodes (spheres inside communities) ---
           const nodeGroup = new THREE.Group();
           scene.add(nodeGroup);
 
           interface Node {
-            sprite: THREE.Sprite;
-            mat: THREE.SpriteMaterial;
+            mesh: THREE.Mesh;
+            glowMesh: THREE.Mesh;
+            mat: THREE.MeshBasicMaterial;
+            glowMat: THREE.MeshBasicMaterial;
+            community: number;
             vx: number; vy: number; vz: number;
             born: number;
             lifetime: number;
-            baseScale: number;
-            color: number;
+            baseRadius: number;
           }
 
           const nodes: Node[] = [];
-          const COUNT  = 45;
+          const COUNT = 40;
           const EDGE_DIST = 3.5;
-          const SPREAD = 6;
+
+          const sphereGeo = new THREE.SphereGeometry(1, 12, 12);
 
           function spawn(scatter = false): Node {
-            const colorIndex = Math.floor(Math.random() * COLORS.length);
-            const color = COLORS[colorIndex];
-            // White nodes are small accent dots; colored nodes are larger
-            const baseScale = color === WHITE
-              ? 0.3 + Math.random() * 0.25
-              : 0.55 + Math.random() * 0.95;
+            const community = Math.floor(Math.random() * NUM_COMMUNITIES);
+            const zone = zones[community];
+            const color = zone.color;
+            const baseRadius = 0.08 + Math.random() * 0.12;
 
-            const mat = new THREE.SpriteMaterial({
-              map: glowTexture,
+            // Core sphere
+            const mat = new THREE.MeshBasicMaterial({
               color,
               transparent: true,
+              opacity: 0,
+            });
+            const mesh = new THREE.Mesh(sphereGeo, mat);
+            mesh.scale.set(baseRadius, baseRadius, baseRadius);
+
+            // Glow sphere
+            const glowMat = new THREE.MeshBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0,
               blending: THREE.AdditiveBlending,
               depthWrite: false,
             });
-            const sprite = new THREE.Sprite(mat);
-            sprite.scale.set(baseScale, baseScale, 1);
+            const glowMesh = new THREE.Mesh(sphereGeo, glowMat);
+            glowMesh.scale.set(baseRadius * 1.8, baseRadius * 1.8, baseRadius * 1.8);
 
-            let x: number, y: number, z: number;
-            if (scatter) {
-              x = (Math.random() - 0.5) * SPREAD * 2;
-              y = (Math.random() - 0.5) * SPREAD * 1.5;
-              z = (Math.random() - 0.5) * 5;
-            } else {
-              const side = Math.floor(Math.random() * 4);
-              z = (Math.random() - 0.5) * 5;
-              if (side === 0)      { x = -SPREAD - 2; y = (Math.random() - 0.5) * SPREAD * 2; }
-              else if (side === 1) { x =  SPREAD + 2; y = (Math.random() - 0.5) * SPREAD * 2; }
-              else if (side === 2) { y = -SPREAD;     x = (Math.random() - 0.5) * SPREAD * 2; }
-              else                 { y =  SPREAD;     x = (Math.random() - 0.5) * SPREAD * 2; }
-            }
-            sprite.position.set(x, y, z);
-            nodeGroup.add(sprite);
+            // Position near community center
+            const spread = 1.2;
+            const x = zone.center.x + (Math.random() - 0.5) * spread * 2;
+            const y = zone.center.y + (Math.random() - 0.5) * spread * 2;
+            const z = zone.center.z + (Math.random() - 0.5) * spread * 2;
+            mesh.position.set(x, y, z);
+            glowMesh.position.set(x, y, z);
 
-            const speed = 0.006 + Math.random() * 0.01;
-            const angle = Math.atan2(-y, -x) + (Math.random() - 0.5) * 1;
+            nodeGroup.add(mesh);
+            nodeGroup.add(glowMesh);
 
             return {
-              sprite,
-              mat,
-              vx: scatter ? (Math.random() - 0.5) * 0.012 : Math.cos(angle) * speed,
-              vy: scatter ? (Math.random() - 0.5) * 0.012 : Math.sin(angle) * speed,
+              mesh, glowMesh, mat, glowMat, community,
+              vx: (Math.random() - 0.5) * 0.008,
+              vy: (Math.random() - 0.5) * 0.008,
               vz: (Math.random() - 0.5) * 0.004,
               born: performance.now() - (scatter ? Math.random() * 15000 : 0),
-              lifetime: 10000 + Math.random() * 12000,
-              baseScale,
-              color,
+              lifetime: 12000 + Math.random() * 14000,
+              baseRadius,
             };
           }
 
-          // Seed initial nodes
           for (let i = 0; i < COUNT; i++) nodes.push(spawn(true));
+
+          // --- Solid intra-community edges ---
+          const MAX_SOLID = 300;
+          const solidArr = new Float32Array(MAX_SOLID * 6);
+          const solidGeo = new THREE.BufferGeometry();
+          solidGeo.setAttribute('position', new THREE.BufferAttribute(solidArr, 3));
+          solidGeo.setDrawRange(0, 0);
+          const solidMat = new THREE.LineBasicMaterial({
+            color: 0x6366f1,
+            transparent: true,
+            opacity: 0.35,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          scene.add(new THREE.LineSegments(solidGeo, solidMat));
+
+          // --- Dashed cross-community edges ---
+          const MAX_DASHED = 200;
+          const dashedArr = new Float32Array(MAX_DASHED * 6);
+          const dashedGeo = new THREE.BufferGeometry();
+          dashedGeo.setAttribute('position', new THREE.BufferAttribute(dashedArr, 3));
+          dashedGeo.setDrawRange(0, 0);
+          const dashedMat = new THREE.LineDashedMaterial({
+            color: 0x94a3b8,
+            transparent: true,
+            opacity: 0.2,
+            dashSize: 0.15,
+            gapSize: 0.1,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          const dashedLines = new THREE.LineSegments(dashedGeo, dashedMat);
+          scene.add(dashedLines);
 
           let targetCX = 0, targetCY = 0;
           let lastSpawn = performance.now();
@@ -191,7 +240,7 @@
             const now = performance.now();
 
             // Spawn replacement nodes
-            if (nodes.length < COUNT && now - lastSpawn > 350) {
+            if (nodes.length < COUNT && now - lastSpawn > 400) {
               nodes.push(spawn(false));
               lastSpawn = now;
             }
@@ -200,38 +249,42 @@
             for (let i = nodes.length - 1; i >= 0; i--) {
               const n = nodes[i];
               const t = (now - n.born) / n.lifetime;
-              // Fade in over first 5%, fade out over last 15%
               const fadeIn  = t < 0.05 ? t / 0.05 : 1;
               const fadeOut = t > 0.85 ? 1 - (t - 0.85) / 0.15 : 1;
               const alpha = fadeIn * fadeOut;
 
               n.mat.opacity = alpha;
-              const sc = n.baseScale * (t > 0.85 ? fadeOut : 1);
-              n.sprite.scale.set(sc, sc, 1);
+              n.glowMat.opacity = alpha * 0.3;
+              const sc = n.baseRadius * (t > 0.85 ? fadeOut : 1);
+              n.mesh.scale.set(sc, sc, sc);
+              n.glowMesh.scale.set(sc * 1.8, sc * 1.8, sc * 1.8);
 
               if (t >= 1) {
-                nodeGroup.remove(n.sprite);
+                nodeGroup.remove(n.mesh);
+                nodeGroup.remove(n.glowMesh);
                 n.mat.dispose();
+                n.glowMat.dispose();
                 nodes.splice(i, 1);
                 continue;
               }
 
-              const p = n.sprite.position;
+              const p = n.mesh.position;
+              const zone = zones[n.community];
 
-              // Gentle centre-pull
-              n.vx -= p.x * 0.0004;
-              n.vy -= p.y * 0.0004;
-              n.vz -= p.z * 0.0002;
+              // Pull toward community center
+              n.vx -= (p.x - zone.center.x) * 0.0006;
+              n.vy -= (p.y - zone.center.y) * 0.0006;
+              n.vz -= (p.z - zone.center.z) * 0.0003;
 
               // Neighbour repulsion
               for (let j = 0; j < nodes.length; j++) {
                 if (i === j) continue;
-                const o = nodes[j].sprite.position;
+                const o = nodes[j].mesh.position;
                 const dx = p.x - o.x, dy = p.y - o.y, dz = p.z - o.z;
                 const d2 = dx * dx + dy * dy + dz * dz;
-                if (d2 < 3 && d2 > 0.01) {
+                if (d2 < 2 && d2 > 0.01) {
                   const d = Math.sqrt(d2);
-                  const f = 0.0015 / d2;
+                  const f = 0.001 / d2;
                   n.vx += (dx / d) * f;
                   n.vy += (dy / d) * f;
                   n.vz += (dz / d) * f;
@@ -240,33 +293,53 @@
 
               n.vx *= 0.985; n.vy *= 0.985; n.vz *= 0.985;
               p.x += n.vx; p.y += n.vy; p.z += n.vz;
+              n.glowMesh.position.copy(p);
             }
 
             // Rebuild edges every 3 frames
             if (++edgeFrame >= 3) {
               edgeFrame = 0;
-              let ec = 0;
-              const pos = edgeGeo.attributes.position as THREE.BufferAttribute;
-              const a = pos.array as Float32Array;
-              for (let i = 0; i < nodes.length && ec < MAX_EDGES; i++) {
-                const pa = nodes[i].sprite.position;
-                for (let j = i + 1; j < nodes.length && ec < MAX_EDGES; j++) {
-                  const pb = nodes[j].sprite.position;
+
+              let sc = 0; // solid count
+              let dc = 0; // dashed count
+              const sa = (solidGeo.attributes.position as THREE.BufferAttribute).array as Float32Array;
+              const da = (dashedGeo.attributes.position as THREE.BufferAttribute).array as Float32Array;
+
+              for (let i = 0; i < nodes.length; i++) {
+                const pa = nodes[i].mesh.position;
+                for (let j = i + 1; j < nodes.length; j++) {
+                  const pb = nodes[j].mesh.position;
                   const dx = pa.x - pb.x, dy = pa.y - pb.y, dz = pa.z - pb.z;
-                  if (Math.sqrt(dx * dx + dy * dy + dz * dz) < EDGE_DIST) {
-                    const b = ec * 6;
-                    a[b]   = pa.x; a[b+1] = pa.y; a[b+2] = pa.z;
-                    a[b+3] = pb.x; a[b+4] = pb.y; a[b+5] = pb.z;
-                    ec++;
+                  const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                  if (dist > EDGE_DIST) continue;
+
+                  const sameCommunity = nodes[i].community === nodes[j].community;
+
+                  if (sameCommunity && sc < MAX_SOLID) {
+                    const b = sc * 6;
+                    sa[b]   = pa.x; sa[b+1] = pa.y; sa[b+2] = pa.z;
+                    sa[b+3] = pb.x; sa[b+4] = pb.y; sa[b+5] = pb.z;
+                    sc++;
+                  } else if (!sameCommunity && dc < MAX_DASHED) {
+                    const b = dc * 6;
+                    da[b]   = pa.x; da[b+1] = pa.y; da[b+2] = pa.z;
+                    da[b+3] = pb.x; da[b+4] = pb.y; da[b+5] = pb.z;
+                    dc++;
                   }
                 }
               }
-              pos.needsUpdate = true;
-              edgeGeo.setDrawRange(0, ec * 2);
+
+              (solidGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+              solidGeo.setDrawRange(0, sc * 2);
+
+              (dashedGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+              dashedGeo.setDrawRange(0, dc * 2);
+              dashedLines.computeLineDistances();
             }
 
-            // Slow auto-rotation + mouse parallax
-            nodeGroup.rotation.y += 0.0008;
+            // Gentle hull rotation + mouse parallax
+            communityGroup.rotation.y += 0.0006;
+            nodeGroup.rotation.y = communityGroup.rotation.y;
             camera.position.x += (targetCX - camera.position.x) * 0.025;
             camera.position.y += (targetCY - camera.position.y) * 0.025;
             renderer.render(scene, camera);
@@ -277,18 +350,29 @@
             window.removeEventListener('mousemove', onMouse);
             window.removeEventListener('resize', onResize);
             for (const n of nodes) {
-              nodeGroup.remove(n.sprite);
+              nodeGroup.remove(n.mesh);
+              nodeGroup.remove(n.glowMesh);
               n.mat.dispose();
+              n.glowMat.dispose();
             }
-            glowTexture.dispose();
-            edgeGeo.dispose();
-            edgeMat.dispose();
+            for (const z of zones) {
+              communityGroup.remove(z.fillMesh);
+              communityGroup.remove(z.wireMesh);
+              z.fillMesh.geometry.dispose();
+              (z.fillMesh.material as THREE.Material).dispose();
+              z.wireMesh.geometry.dispose();
+              (z.wireMesh.material as THREE.Material).dispose();
+            }
+            sphereGeo.dispose();
+            solidGeo.dispose();
+            solidMat.dispose();
+            dashedGeo.dispose();
+            dashedMat.dispose();
             renderer.dispose();
           };
 
         } catch (e) {
           console.warn('WebGL not available, skipping Three.js hero graph', e);
-          // Glass panel dark background still shows — no further action needed
         }
       });
     });
@@ -301,24 +385,27 @@
   <div class="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 md:px-8">
     <div bind:this={glassEl} class="hero-glass relative w-full max-w-4xl rounded-2xl overflow-hidden">
 
-      <!-- Dark opaque background layer — blocks hex grid -->
-      <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.9); z-index: 0;"></div>
+      <!-- Dark opaque background layer -->
+      <div class="absolute inset-0 rounded-2xl" style="background: rgba(8, 8, 14, 0.92); z-index: 0;"></div>
 
-      <!-- Three.js canvas — renders glowing nodes on transparent background above the dark layer -->
+      <!-- Three.js canvas -->
       <canvas bind:this={canvasEl} class="absolute inset-0 w-full h-full" style="z-index: 1;" aria-hidden="true"></canvas>
 
-      <!-- Text content on top of everything -->
-      <div class="hero-content relative flex flex-col items-center justify-center text-center px-6 sm:px-10 md:px-16 py-14 md:py-20" style="z-index: 2;">
+      <!-- Scrim — softens graph behind text center for readability -->
+      <div class="absolute inset-0 rounded-2xl" style="z-index: 2; background: radial-gradient(ellipse at center, rgba(8, 8, 14, 0.65) 0%, rgba(8, 8, 14, 0.2) 60%, transparent 100%);"></div>
 
-        <h1 class="hero-name leading-[0.9] mb-5">
+      <!-- Text content -->
+      <div class="hero-content relative flex flex-col items-center justify-center text-center px-6 sm:px-10 md:px-16 py-14 md:py-20" style="z-index: 3;">
+
+        <h1 class="hero-name leading-[0.9] mb-5" style="text-shadow: 0 2px 20px rgba(0,0,0,0.8);">
           <span class="hero-first">IAN</span> <span class="hero-last">NELSON</span>
         </h1>
 
-        <p class="font-mono uppercase tracking-[0.3em] text-[#94a3b8] mb-5" style="font-size: clamp(0.55rem, 0.75vw, 0.8rem);">
+        <p class="font-mono uppercase tracking-[0.3em] text-[#94a3b8] mb-5" style="font-size: clamp(0.55rem, 0.75vw, 0.8rem); text-shadow: 0 1px 8px rgba(0,0,0,0.9);">
           Autonomous Systems · Edge AI · Intelligence
         </p>
 
-        <p class="text-[#94a3b8] max-w-lg mx-auto mb-8 font-light leading-[1.8]" style="font-size: clamp(0.85rem, 0.95vw, 1rem);">
+        <p class="text-[#94a3b8] max-w-lg mx-auto mb-8 font-light leading-[1.8]" style="font-size: clamp(0.85rem, 0.95vw, 1rem); text-shadow: 0 1px 8px rgba(0,0,0,0.9);">
           Building multi-agent swarms, on-prem AI matching frontier models, knowledge graph pipelines, and edge inference systems.
         </p>
 
