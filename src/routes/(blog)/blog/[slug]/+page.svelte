@@ -338,7 +338,7 @@
   }
 
   .prose-blog :global(p) {
-    color: #cbd5e1;
+    color: #e2e8f0;
     font-weight: 300;
     line-height: 1.9;
     margin-bottom: 1.5rem;
@@ -357,7 +357,7 @@
 
   .prose-blog :global(ul),
   .prose-blog :global(ol) {
-    color: #cbd5e1;
+    color: #e2e8f0;
     padding-left: 1.5rem;
     margin-bottom: 1.5rem;
   }
@@ -372,7 +372,7 @@
     border-left: 3px solid var(--indigo);
     padding-left: 1.5rem;
     margin: 2rem 0;
-    color: #cbd5e1;
+    color: #e2e8f0;
     font-style: italic;
     font-size: clamp(1.05rem, 1.2vw, 1.25rem);
     line-height: 1.8;
