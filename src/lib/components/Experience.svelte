@@ -1,71 +1,86 @@
 <script lang="ts">
-  import ScrollReveal from './ScrollReveal.svelte';
   import { experience } from '$lib/data/content';
 </script>
 
-<section id="experience" class="py-16 md:py-24 lg:py-28 px-4 sm:px-6 md:px-8 max-w-6xl mx-auto" aria-labelledby="exp-heading">
-  <div class="font-mono text-[0.55rem] sm:text-[0.6rem] md:text-[0.65rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">02 // Experience</div>
-  <h2 id="exp-heading" class="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-[#f1f5f9] mb-12">
-    Track <span style="background: linear-gradient(135deg, #6366f1, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Record</span>
-  </h2>
+<!-- Section header stays fixed, slides are horizontal -->
+<div class="flex flex-col h-full">
+  <div class="px-4 sm:px-6 md:px-8 pt-8 md:pt-12 max-w-6xl mx-auto w-full">
+    <div class="font-mono text-[0.55rem] sm:text-[0.6rem] md:text-[0.65rem] tracking-[0.3em] uppercase text-[#6366f1] mb-2">02 // Experience</div>
+    <h2 class="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-[#f1f5f9] mb-2">
+      Track <span class="gradient-text">Record</span>
+    </h2>
+    <div class="font-mono text-[0.6rem] md:text-[0.7rem] text-[#94a3b8] tracking-wide mb-4">
+      ← scroll horizontally →
+    </div>
+  </div>
 
-  <div class="flex flex-col gap-4 relative">
-    <!-- Timeline line -->
-    <div
-      class="absolute left-[20px] top-0 bottom-0 w-px hidden md:block"
-      style="background: linear-gradient(to bottom, #6366f1, #06b6d4);"
-      aria-hidden="true"
-    ></div>
-
-    {#each experience as entry, i}
-      <ScrollReveal delay={Math.min(i, 2) * 80}>
+  <!-- Horizontal slides (fullPage.js picks up .slide class) -->
+  {#each experience as entry, i}
+    <div class="slide">
+      <div class="flex items-center justify-center h-full px-4 sm:px-8 md:px-16 pb-8">
         <article
-          class="exp-card p-4 md:p-6 rounded-xl transition-[border-color,box-shadow,transform] duration-200 md:ml-10 relative"
-          onmouseenter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-hover)'; }}
-          onmouseleave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--card-border)'; }}
+          class="exp-card w-full max-w-2xl p-5 md:p-8 rounded-xl"
         >
-          <!-- Timeline dot -->
-          <div
-            class="absolute left-0 top-6 w-3 h-3 rounded-full border-2 border-[#6366f1] bg-[#0a0a0f] -translate-x-[calc(2.5rem+6px)] hidden md:block"
-            aria-hidden="true"
-          ></div>
-
-          <div class="flex items-start justify-between gap-4 mb-3 flex-wrap">
+          <div class="flex items-start justify-between gap-4 mb-4 flex-wrap">
             <div class="flex items-center gap-3">
-              <!-- Avatar -->
               <div
-                class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-mono text-xs font-bold text-white flex-shrink-0"
+                class="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-mono text-xs md:text-sm font-bold text-white flex-shrink-0"
                 style="background: linear-gradient(135deg, #6366f1, #06b6d4);"
                 aria-hidden="true"
               >{entry.avatar}</div>
               <div>
-                <div class="font-semibold text-[0.95rem] text-[#f1f5f9]">{entry.role}</div>
-                <div class="font-mono text-xs tracking-wide text-[#6366f1]">{entry.company}</div>
+                <div class="font-semibold text-base md:text-lg text-[#f1f5f9]">{entry.role}</div>
+                <div class="font-mono text-xs md:text-sm tracking-wide text-[#6366f1]">{entry.company}</div>
               </div>
             </div>
-            <div class="font-mono text-[0.6rem] md:text-[0.7rem] tracking-[0.1em] text-[#94a3b8] whitespace-nowrap pt-1">{entry.dates}</div>
+            <div class="font-mono text-[0.65rem] md:text-[0.75rem] tracking-[0.1em] text-[#94a3b8] whitespace-nowrap pt-1">{entry.dates}</div>
           </div>
 
-          <ul class="flex flex-col gap-1" aria-label="Responsibilities">
+          <ul class="flex flex-col gap-2" aria-label="Responsibilities">
             {#each entry.bullets as bullet}
-              <li class="text-sm md:text-base text-[#94a3b8] pl-4 relative leading-relaxed">
-                <span class="absolute left-0 text-[#06b6d4] text-[0.7rem] top-[0.15rem]" aria-hidden="true">▸</span>
+              <li class="text-sm md:text-base text-[#94a3b8] pl-5 relative leading-relaxed">
+                <span class="absolute left-0 text-[#06b6d4] text-[0.75rem] top-[0.2rem]" aria-hidden="true">▸</span>
                 {bullet}
               </li>
             {/each}
           </ul>
+
+          <!-- Slide indicator -->
+          <div class="mt-6 pt-4 border-t border-[rgba(99,102,241,0.1)] flex items-center justify-between">
+            <div class="font-mono text-[0.6rem] text-[#94a3b8] tracking-wide">
+              {i + 1} / {experience.length}
+            </div>
+            <div class="flex gap-1">
+              {#each experience as _, j}
+                <div
+                  class="w-1.5 h-1.5 rounded-full transition-colors duration-200"
+                  style="background: {j === i ? '#6366f1' : 'rgba(99,102,241,0.2)'};"
+                ></div>
+              {/each}
+            </div>
+          </div>
         </article>
-      </ScrollReveal>
-    {/each}
-  </div>
-</section>
+      </div>
+    </div>
+  {/each}
+</div>
 
 <style>
-  .exp-card {
-    background: rgba(15, 15, 20, 0.8);
-    border: 1px solid var(--card-border);
+  .gradient-text {
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
+
+  .exp-card {
+    background: rgba(15, 15, 20, 0.85);
+    border: 1px solid var(--card-border);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
   .exp-card:hover {
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+    border-color: var(--card-hover);
+    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.08);
   }
 </style>

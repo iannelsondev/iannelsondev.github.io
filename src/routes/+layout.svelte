@@ -27,7 +27,8 @@
       css3: true,
       easing: 'easeInOutCubic',
       navigation: false,
-      normalScrollElements: '',
+      controlArrows: true,
+      slidesNavigation: false,
       afterLoad: (_origin: any, destination: any) => {
         const anchor = sectionAnchors[destination.index] || '';
         window.dispatchEvent(new CustomEvent('fp-section-change', {
